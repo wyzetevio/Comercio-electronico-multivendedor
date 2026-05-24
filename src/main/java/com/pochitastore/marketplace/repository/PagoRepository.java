@@ -7,5 +7,5 @@ import java.util.List;
 
 public interface PagoRepository extends JpaRepository<Pago, Long> {
 
-    List<Pago> findByOrden_IdOrden(Long idOrden);
+    List<Pago> findByOrdenIdOrden(Long idOrden);
 }

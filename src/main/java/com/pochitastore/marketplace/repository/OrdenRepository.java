@@ -7,5 +7,6 @@ import java.util.List;
 
 public interface OrdenRepository extends JpaRepository<Orden, Long> {
 
-    List<Orden> findByUsuario_IdUsuario(Long idUsuario);
+    List<Orden> findByUsuarioIdUsuario(Long idUsuario);
+
 }

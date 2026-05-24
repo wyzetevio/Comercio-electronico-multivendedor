@@ -4,8 +4,17 @@ import com.pochitastore.marketplace.entity.CarritoItem;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.util.Optional;
 
-public interface CarritoItemRepository extends JpaRepository<CarritoItem, Long> {
+public interface CarritoItemRepository
+        extends JpaRepository<CarritoItem, Long> {
 
-    List<CarritoItem> findByCarrito_IdCarrito(Long idCarrito);
+    Optional<CarritoItem>
+    findByCarritoIdCarritoAndProductoIdProducto(
+            Long carritoId,
+            Long productoId
+    );
+
+    List<CarritoItem>
+    findByCarritoIdCarrito(Long carritoId);
 }

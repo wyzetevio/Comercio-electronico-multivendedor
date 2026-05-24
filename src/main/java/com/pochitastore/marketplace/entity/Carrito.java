@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "carrito")
@@ -24,6 +25,9 @@ public class Carrito {
     @OneToOne
     @JoinColumn(name = "id_usuario", nullable = false, unique = true)
     private Usuario usuario;
+
+    @OneToMany(mappedBy = "carrito")
+    private List<CarritoItem> items;
 
     private String estado;
 

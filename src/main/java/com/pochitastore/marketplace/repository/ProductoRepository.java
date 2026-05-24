@@ -5,13 +5,20 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 
-public interface ProductoRepository extends JpaRepository<Producto, Long> {
+public interface ProductoRepository
+        extends JpaRepository<Producto, Long> {
 
     List<Producto> findByEstadoTrue();
 
-    List<Producto> findByNombreContainingIgnoreCase(String nombre);
+    List<Producto> findByTiendaIdTiendaAndEstadoTrue(
+            Long idTienda
+    );
 
-    List<Producto> findByCategoria_IdCategoria(Long idCategoria);
+    List<Producto> findByCategoriaIdCategoriaAndEstadoTrue(
+            Long idCategoria
+    );
 
-    List<Producto> findByTienda_IdTienda(Long idTienda);
+    List<Producto> findByNombreContainingIgnoreCaseAndEstadoTrue(
+            String nombre
+    );
 }

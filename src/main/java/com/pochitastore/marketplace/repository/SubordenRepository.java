@@ -7,7 +7,6 @@ import java.util.List;
 
 public interface SubordenRepository extends JpaRepository<Suborden, Long> {
 
-    List<Suborden> findByTienda_IdTienda(Long idTienda);
+    List<Suborden> findByOrdenIdOrden(Long idOrden);
 
-    List<Suborden> findByEstado(String estado);
 }

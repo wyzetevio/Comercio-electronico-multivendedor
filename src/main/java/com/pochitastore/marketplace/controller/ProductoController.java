@@ -118,4 +118,27 @@ public class ProductoController {
                 idProducto
         );
     }
+
+    @DeleteMapping("/{idProducto}")
+    public void eliminarProducto(
+            @PathVariable Long idProducto
+    ) {
+        productoService.eliminarProducto(idProducto);
+    }
+
+    @GetMapping("/categoria/nombre/{nombre}")
+    public List<Producto> obtenerProductosPorNombreCategoria(
+            @PathVariable String nombre
+    ) {
+        return productoService
+                .obtenerProductosPorNombreCategoria(nombre);
+    }
+
+    @GetMapping("/precio")
+    public List<Producto> filtrarPorPrecio(
+            @RequestParam Double min,
+            @RequestParam Double max
+    ) {
+        return productoService.filtrarPorPrecio(min, max);
+    }
 }

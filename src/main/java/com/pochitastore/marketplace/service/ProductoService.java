@@ -233,4 +233,19 @@ public class ProductoService {
 
         productoRepository.save(producto);
     }
+
+    public void eliminarProducto(Long idProducto) {
+        obtenerProducto(idProducto);
+        productoRepository.deleteById(idProducto);
+    }
+
+    public List<Producto> obtenerProductosPorNombreCategoria(String nombre) {
+        return productoRepository
+                .findByCategoriaNombreIgnoreCaseAndEstadoTrue(nombre);
+    }
+
+    public List<Producto> filtrarPorPrecio(Double min, Double max) {
+        return productoRepository
+                .findByPrecioBetweenAndEstadoTrue(min, max);
+    }
 }

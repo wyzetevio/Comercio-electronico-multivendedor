@@ -9,6 +9,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -42,7 +43,17 @@ public class UsuarioService {
                 )
         );
 
-        usuario.setRol("CLIENTE");
+        // validar y asignar rol
+        String rolRecibido = usuario.getRol();
+        if (rolRecibido == null || rolRecibido.isBlank()) {
+            usuario.setRol("CLIENTE");
+        } else if (!Set.of("ADMIN", "VENDEDOR", "CLIENTE").contains(rolRecibido)) {
+            throw new RuntimeException(
+                    "Rol inválido. Los roles permitidos son: ADMIN, VENDEDOR, CLIENTE"
+            );
+        } else {
+            usuario.setRol(rolRecibido);
+        }
 
         usuario.setEstado(true);
 

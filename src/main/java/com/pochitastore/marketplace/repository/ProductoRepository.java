@@ -21,4 +21,13 @@ public interface ProductoRepository
     List<Producto> findByNombreContainingIgnoreCaseAndEstadoTrue(
             String nombre
     );
+
+    List<Producto> findByCategoriaNombreIgnoreCaseAndEstadoTrue(
+            String nombre
+    );
+
+    List<Producto> findByPrecioBetweenAndEstadoTrue(
+            Double min,
+            Double max
+    );
 }

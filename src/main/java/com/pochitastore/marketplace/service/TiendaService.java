@@ -1,10 +1,13 @@
 package com.pochitastore.marketplace.service;
 
 import com.pochitastore.marketplace.entity.Tienda;
+import com.pochitastore.marketplace.entity.Vendedor;
 import com.pochitastore.marketplace.repository.TiendaRepository;
+import com.pochitastore.marketplace.repository.VendedorRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -12,6 +15,7 @@ import java.util.List;
 public class TiendaService {
 
     private final TiendaRepository tiendaRepository;
+    private final VendedorRepository vendedorRepository;
 
     public List<Tienda> listar() {
         return tiendaRepository.findAll();
@@ -21,7 +25,13 @@ public class TiendaService {
         return tiendaRepository.findById(id).orElse(null);
     }
 
-    public Tienda guardar(Tienda tienda) {
+    public Tienda guardar(Long idVendedor, Tienda tienda) {
+        Vendedor vendedor = vendedorRepository.findById(idVendedor)
+                .orElseThrow(() -> new RuntimeException("Vendedor no encontrado"));
+        tienda.setVendedor(vendedor);
+        tienda.setActivo(true);
+        tienda.setCreatedAt(LocalDateTime.now());
+        tienda.setUpdatedAt(LocalDateTime.now());
         return tiendaRepository.save(tienda);
     }
 

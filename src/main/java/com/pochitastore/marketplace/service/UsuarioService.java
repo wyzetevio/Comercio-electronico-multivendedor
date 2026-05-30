@@ -65,7 +65,19 @@ public class UsuarioService {
                 LocalDateTime.now()
         );
 
-        return usuarioRepository.save(usuario);
+        Usuario saved = usuarioRepository.save(usuario);
+
+        if ("VENDEDOR".equals(saved.getRol())) {
+            Vendedor vendedor = new Vendedor();
+            vendedor.setUsuario(saved);
+            vendedor.setActivo(true);
+            vendedor.setEstadoVerificacion(false);
+            vendedor.setCreatedAt(LocalDateTime.now());
+            vendedor.setUpdatedAt(LocalDateTime.now());
+            vendedorRepository.save(vendedor);
+        }
+
+        return saved;
     }
 
 

@@ -1,6 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, useState, useEffect, useContext, useCallback } from 'react';
 import { useAuth } from './AuthContext';
+import { listarTiendas } from '../services/tiendaService'
 
 // Crear el contexto de la tienda del vendedor
 export const StoreContext = createContext();
@@ -19,15 +20,8 @@ export const StoreProvider = ({ children }) => {
 
         setLoading(true);
         try {
-            // Buscamos en el endpoint público/autenticado de tiendas
-            const response = await fetch('http://localhost:8080/api/tiendas', {
-                headers: {
-                    'Authorization': `Bearer ${user.token}`
-                }
-            });
 
-            if (response.ok) {
-                const tiendasList = await response.json();
+            const tiendasList = await listarTiendas();
                 
                 // Mapeo inteligente de tu backend: Filtramos para encontrar la tienda que 
                 // pertenece al idUsuario del vendedor logueado
@@ -42,7 +36,7 @@ export const StoreProvider = ({ children }) => {
                 } else {
                     setTienda(null); // Aún no ha creado su tienda (debe ir a CrearTienda.jsx)
                 }
-            }
+           
         } catch (error) {
             console.error("Error al cargar la tienda del vendedor:", error);
             setTienda(null);

@@ -1,6 +1,13 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, useState, useEffect, useContext, useCallback } from 'react';
 import { useAuth } from './AuthContext';
+import {
+    obtenerCarritoUsuario,
+    agregarProductoAlCarrito,
+    actualizarCantidadItem,
+    eliminarItemCarrito,
+    vaciarCarrito
+} from "../services/carritoService";
 
 // Crear el contexto del carrito
 export const CartContext = createContext();
@@ -24,15 +31,8 @@ export const CartProvider = ({ children }) => {
         if (!user || !user.idUsuario) return;
         setLoading(true);
         try {
-            const response = await fetch(`http://localhost:8080/api/carritos/usuario/${user.idUsuario}`, {
-                headers: {
-                    'Authorization': `Bearer ${user.token}`
-                }
-            });
-            if (response.ok) {
-                const data = await response.json();
-                setCart(data);
-            }
+            const data = await obtenerCarritoUsuario(user.idUsuario);
+            setCart(data);
         } catch (error) {
             console.error("Error al obtener el carrito del servidor:", error);
         } finally {
@@ -71,20 +71,14 @@ export const CartProvider = ({ children }) => {
     // Agregar producto al carrito
     const addToCart = async (producto, cantidad = 1) => {
         if (user && user.idUsuario) {
-            // Lógica con Backend: POST /api/carritos/agregar?usuarioId=...&productoId=...&cantidad=...
+            
             try {
-                const response = await fetch(
-                    `http://localhost:8080/api/carritos/agregar?usuarioId=${user.idUsuario}&productoId=${producto.idProducto}&cantidad=${cantidad}`,
-                    {
-                        method: 'POST',
-                        headers: {
-                            'Authorization': `Bearer ${user.token}`
-                        }
-                    }
-                );
-                if (response.ok) {
-                    await fetchCartFromServer(); // Recargar los datos actualizados
-                }
+                await agregarProductoAlCarrito(
+                        user.idUsuario,
+                        producto.idProducto,
+                        cantidad
+                     );
+                await fetchCartFromServer();
             } catch (error) {
                 console.error("Error al agregar producto en el servidor:", error);
             }
@@ -112,21 +106,11 @@ export const CartProvider = ({ children }) => {
         }
 
         if (user && user.idUsuario) {
-            // Lógica con Backend: PUT /api/carritos/item/{carritoItemId}?cantidad=...
+
             // En el servidor el ID es el del 'carritoItem'
             try {
-                const response = await fetch(
-                    `http://localhost:8080/api/carritos/item/${id}?cantidad=${nuevaCantidad}`,
-                    {
-                        method: 'PUT',
-                        headers: {
-                            'Authorization': `Bearer ${user.token}`
-                        }
-                    }
-                );
-                if (response.ok) {
-                    await fetchCartFromServer();
-                }
+                await actualizarCantidadItem(id, nuevaCantidad);
+                await fetchCartFromServer();
             } catch (error) {
                 console.error("Error al actualizar cantidad en el servidor:", error);
             }
@@ -145,17 +129,10 @@ export const CartProvider = ({ children }) => {
     // Eliminar artículo del carrito
     const removeItem = async (id) => {
         if (user && user.idUsuario) {
-            // Lógica con Backend: DELETE /api/carritos/item/{carritoItemId}
+
             try {
-                const response = await fetch(`http://localhost:8080/api/carritos/item/${id}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'Authorization': `Bearer ${user.token}`
-                    }
-                });
-                if (response.ok) {
-                    await fetchCartFromServer();
-                }
+                 await eliminarItemCarrito(id);
+                 await fetchCartFromServer();
             } catch (error) {
                 console.error("Error al eliminar item en el servidor:", error);
             }
@@ -170,17 +147,10 @@ export const CartProvider = ({ children }) => {
     // Vaciar por completo el carrito
     const clearCart = async () => {
         if (user && user.idUsuario && cart) {
-            // Lógica con Backend: DELETE /api/carritos/{carritoId}/vaciar
+
             try {
-                const response = await fetch(`http://localhost:8080/api/carritos/${cart.idCarrito}/vaciar`, {
-                    method: 'DELETE',
-                    headers: {
-                        'Authorization': `Bearer ${user.token}`
-                    }
-                });
-                if (response.ok) {
-                    setCart({ ...cart, items: [] });
-                }
+                await vaciarCarrito(cart.idCarrito);
+                await fetchCartFromServer();;
             } catch (error) {
                 console.error("Error al vaciar el carrito en el servidor:", error);
             }

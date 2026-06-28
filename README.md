@@ -3,55 +3,111 @@
 🌿 1. ASIGNACIÓN DE RAMAS EN GIT
 Para trabajar en paralelo sin generar conflictos en el código, cada integrante trabajará en su propia rama de características (feature), naciendo siempre desde la rama común develop:
 
-🔑 JUAN: feature/front-security-auth (Encargado de la seguridad, interceptor de tokens, contexto global y rutas protegidas).
+🔑 JUAN: feature/front-security-auth (Encargado del desarrollo del Enrutamiento, Seguridad, Rutas Protegidas y los Contextos globales).
 
-🗂️ JESÚS: feature/front-marketplace-models (Encargado de los componentes globales del layout, Navbar, Footer y tarjetas de productos).
+🗂️ JESÚS: feature/front-marketplace-components (Encargado del desarrollo de todos los componentes globales, contenedores y elementos UI reutilizables).
 
-⚙️ PIERO: feature/front-controllers-integration (Encargado de la lógica de servicios de consumo de API y conectar los formularios con el Backend).
+⚙️ PIERO: feature/front-services-integration (Encargado del desarrollo de toda la lógica de servicios de consumo de APIs y utilidades/configuraciones generales).
 
-🧪 CÉSAR: feature/front-forms-views (Encargado de la maquetación visual limpia de todas las pantallas y formularios usando Tailwind).
+🧪 CÉSAR: feature/front-pages-views (Encargado del desarrollo de todas las vistas/páginas completas y su respectiva maquetación con Tailwind CSS).
 
 📁 2. ESTRUCTURA COMPLETA DEL PROYECTO (React + Vite + Tailwind)
-Esta estructura incluye la separación total del acceso administrativo (Opción B), permitiendo que el Administrador cuente con su propia pantalla de login oculta del público general.
+Esta estructura divide las responsabilidades del equipo de forma limpia. Se incluye la persistencia híbrida del carrito (localStorage/BD) y el soporte para todos los módulos del backend (productos, categorías, tiendas, envíos y liquidaciones).
 
-
+```text
 marketplace-frontend/
 ├── src/
-│   ├── assets/             # Logos corporativos y recursos visuales del Marketplace
+│   ├── assets/             # Recursos visuales estáticos (logos, banners, iconos)
 │   │
-│   ├── components/         # COMPONENTES GLOBALES REUTILIZABLES [JESÚS]
-│   │   ├── Navbar.jsx      # Menú inteligente (Muestra botones dinámicos solo para CLIENTE y VENDEDOR)
-│   │   ├── Footer.jsx      # Pie de página (Contiene el enlace oculto para registro de socios/vendedores)
-│   │   ├── ProductoCard.jsx# Tarjetas visuales de catálogo diseñadas con Tailwind
-│   │   └── Boton.jsx       # Componente de botón estandarizado para la aplicación
+│   ├── components/         # COMPONENTES GLOBALES REUTILIZABLES [DESARROLLA: JESÚS]
+│   │   ├── ui/             # Elementos atómicos de interfaz
+│   │   │   ├── Boton.jsx   # Botón estandarizado con variantes de color
+│   │   │   ├── Input.jsx   # Input de formularios con soporte para errores
+│   │   │   ├── Modal.jsx   # Ventana emergente flotante reutilizable
+│   │   │   ├── Spinner.jsx # Rueda de carga para estados de espera (loading)
+│   │   │   ├── Badge.jsx   # Etiquetas de estado de colores (PAGADO, ENTREGADO, etc.)
+│   │   │   └── Alerta.jsx  # Toast de alertas y mensajes instantáneos
+│   │   │
+│   │   ├── layout/         # Contenedores estructurales
+│   │   │   ├── Navbar.jsx  # Cabecera dinámica según Rol + contador de carrito
+│   │   │   ├── Footer.jsx  # Pie de página con el link oculto para vendedores
+│   │   │   ├── SidebarVendedor.jsx # Barra lateral del panel de vendedor
+│   │   │   └── SidebarAdmin.jsx    # Barra lateral del panel de administrador
+│   │   │
+│   │   ├── product/        # Componentes de listado de catálogo
+│   │   │   ├── ProductoCard.jsx # Tarjeta de producto para el catálogo
+│   │   │   ├── ProductoGrid.jsx # Rejilla auto-ajustable para productos
+│   │   │   └── FiltrosCatalogo.jsx # Sidebar con filtros de precio y categorías
+│   │   │
+│   │   └── cart/           # Componentes internos del carrito
+│   │       ├── CartItem.jsx # Tarjeta de producto dentro de la bolsa
+│   │       └── CartSummary.jsx # Desglose de precios y totales
 │   │
-│   ├── context/            # CAPA DE SEGURIDAD GLOBAL [JUAN]
-│   │   └── AuthContext.jsx # Estado global del usuario: guarda el JWT en localStorage y expone el Rol activo
+│   ├── context/            # CAPAS DE ESTADO GLOBAL [DESARROLLA: JUAN]
+│   │   ├── AuthContext.jsx # Seguridad del usuario (JWT + rol + idUsuario en localStorage)
+│   │   ├── CartContext.jsx # Estado global del carrito de compras (sincronizado con BD/local)
+│   │   └── StoreContext.jsx # Estado global de la tienda activa del Vendedor
 │   │
-│   ├── routes/             # ENRUTAMIENTO Y ACCESOS [JUAN]
-│   │   ├── AppRoutes.jsx   # Mapeo general de rutas (Incluye la URL secreta del Admin)
-│   │   └── ProtectedRoute.jsx # Filtro/Candado de rutas que rebota usuarios no autorizados de los Dashboards
+│   ├── hooks/              # HOOKS DE ACCESO RÁPIDO [DESARROLLA: JUAN]
+│   │   ├── useAuth.js      # Hook para consumir el estado del usuario
+│   │   ├── useCart.js      # Hook para consumir el estado del carrito
+│   │   └── useStore.js     # Hook para consumir el estado de la tienda activa
 │   │
-│   ├── services/           # CONEXIÓN CON LAS APIS DEL BACKEND [PIERO]
-│   │   ├── api.js          # Configuración de Axios con Interceptor para adjuntar el Header Authorization Bearer
-│   │   ├── authService.js  # Servicios de autenticación general (Login público, Login Admin y Registros)
-│   │   ├── tiendaService.js# Consumo de endpoints para el registro y datos de tiendas
-│   │   └── productoService.js# Operaciones CRUD para el inventario de productos
+│   ├── routes/             # CONFIGURACIÓN DE ENRUTAMIENTO [DESARROLLA: JUAN]
+│   │   ├── AppRoutes.jsx   # Switch de URLs públicas y privadas (incluye Easter Egg de admin)
+│   │   └── ProtectedRoute.jsx # Filtros y candados de acceso basados en roles
 │   │
-│   ├── pages/              # VISTAS COMPLETAS (CÉSAR maqueta con Tailwind / PIERO conecta estados)
-│   │   ├── Home.jsx              # Catálogo principal público de productos [JESÚS / PIERO]
-│   │   ├── Carrito.jsx           # Bolsa de compras interactiva para clientes [JESÚS / PIERO]
-│   │   ├── Login.jsx             # 🛒 LOGIN PÚBLICO: Exclusivo para Clientes y Vendedores [CÉSAR / PIERO]
-│   │   ├── Registro.jsx          # Formulario público de registro para el CLIENTE comprador [CÉSAR / PIERO]
-│   │   ├── RegistroVendedor.jsx  # 🏪 REGISTRO SOCIOS: Formulario exclusivo para el Vendedor [CÉSAR / PIERO]
-│   │   ├── CrearTienda.jsx       # Formulario obligatorio de configuración inicial de tienda [CÉSAR / PIERO]
-│   │   ├── DashboardVendedor.jsx # Panel privado de gestión comercial del VENDEDOR [CÉSAR / PIERO]
-│   │   ├── AdminLogin.jsx        # 👑 LOGIN SECRETO: Acceso exclusivo para el ADMINISTRADOR [CÉSAR / PIERO]
-│   │   └── DashboardAdmin.jsx    # Panel privado de supervisión global del ADMINISTRADOR [CÉSAR / PIERO]
+│   ├── services/           # CONEXIÓN CON APIS DEL BACKEND [DESARROLLA: PIERO]
+│   │   ├── authService.js  # Endpoints de Login y Registro de usuarios
+│   │   ├── carritoService.js # Sincronización del carrito en base de datos
+│   │   ├── categoriaService.js # Carga y gestión de categorías de productos
+│   │   ├── productoService.js # Filtros, búsquedas y CRUD del catálogo de productos
+│   │   ├── tiendaService.js # Gestión y alta de tiendas de vendedores
+│   │   ├── ordenService.js # Creación de pedidos y pasarela de checkout
+│   │   ├── pagoService.js  # Registro, aprobación y reembolso de transacciones
+│   │   ├── envioService.js # Actualizaciones de tracking y estados de entrega
+│   │   ├── liquidacionService.js # Gestión de pagos acumulados y comisiones
+│   │   ├── usuarioService.js # Perfiles, direcciones y desactivación de cuentas
+│   │   └── vendedorService.js # Moderación y estados de vendedores por el Admin
 │   │
-│   ├── App.jsx             # Componente raíz encapsulado en el AuthContext
-│   ├── index.css           # Inyección de las directivas base de Tailwind CSS
-│   └── main.jsx            # Punto de entrada de React
+│   ├── pages/              # VISTAS/PANTALLAS COMPLETAS [DESARROLLA: CÉSAR]
+│   │   ├── public/         # Vistas públicas para cualquier visitante
+│   │   │   ├── Home.jsx             # Catálogo general de productos
+│   │   │   ├── DetalleProducto.jsx  # Ficha del producto y agregar al carro
+│   │   │   ├── Login.jsx            # Pantalla de Login unificada (con soporte Easter Egg)
+│   │   │   ├── Registro.jsx         # Registro de clientes compradores
+│   │   │   ├── RegistroVendedor.jsx # Landing informativa de socios + formulario
+│   │   │   └── AdminLogin.jsx       # Login oculto exclusivo de administración
+│   │   │
+│   │   ├── customer/       # Vistas exclusivas de Clientes
+│   │   │   ├── Carrito.jsx # Bolsa de compras detallada
+│   │   │   ├── Checkout.jsx # Formulario de envío y selección de pago
+│   │   │   ├── MisPedidos.jsx # Historial de compras individuales
+│   │   │   └── Perfil.jsx   # Actualización de datos de perfil
+│   │   │
+│   │   ├── seller/         # Vistas del Dashboard del Vendedor
+│   │   │   ├── DashboardVendedor.jsx # Ventas, comisiones y saldos
+│   │   │   ├── CrearTienda.jsx       # Formulario obligatorio inicial de tienda
+│   │   │   ├── GestionProductos.jsx  # CRUD de inventario del comercio
+│   │   │   ├── GestionPedidos.jsx    # Control de pedidos y despacho de envíos
+│   │   │   └── LiquidacionesVendedor.jsx # Depósitos de saldo solicitados a administración
+│   │   │
+│   │   └── admin/          # Vistas del Dashboard del Administrador
+│   │       ├── DashboardAdmin.jsx    # Monitoreo global de ingresos y comisiones
+│   │       ├── ModeracionTiendas.jsx # Panel para habilitar/suspender comercios
+│   │       ├── GestionCategorias.jsx # CRUD de categorías en el sistema
+│   │       └── LiquidacionesAdmin.jsx# Procesamiento de pagos a vendedores
+│   │
+│   ├── utils/              # UTILERÍAS GLOBALES [DESARROLLA: PIERO]
+│   │   ├── api.js          # Configuración base de Axios con interceptor de JWT
+│   │   ├── formatters.js   # Formato estandarizado de monedas y fechas
+│   │   └── validators.js   # Validaciones de contraseñas, correos y teléfonos
+│   │
+│   ├── App.css             # Estilos globales y reset
+│   ├── App.jsx             # Componente raíz con el árbol de proveedores
+│   ├── index.css           # Inyección de las directivas base de Tailwind
+│   └── main.jsx            # Punto de entrada de React + Vite
+```
 │
 ├── vite.config.js          # Configuración del servidor de desarrollo con Proxy hacia el puerto 8080 (Spring Boot)
 ├── tailwind.config.js      # Declaración de temas, fuentes y extensiones de diseño de Tailwind

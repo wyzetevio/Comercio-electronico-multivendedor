@@ -2,7 +2,7 @@
 import { createContext, useState, useContext } from 'react';
 
 // Crear el contexto de autenticación (interno de este archivo)
-const AuthContext = createContext();
+export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
     // Inicializamos el estado de forma síncrona al cargar la app.
@@ -12,27 +12,29 @@ export const AuthProvider = ({ children }) => {
         const email = localStorage.getItem('email');
         const nombres = localStorage.getItem('nombres');
         const rol = localStorage.getItem('rol');
-        
-        if (token && rol) {
-            return { token, email, nombres, rol };
+        const idUsuario = localStorage.getItem('idUsuario');
+
+        if (token && rol && idUsuario) {
+            return { token, email, nombres, rol, idUsuario: Number(idUsuario) };
         }
         return null;
     });
 
     const [loading] = useState(false);
 
-    // Función de Login: Recibe la respuesta exacta del AuthController
+    // Función de Login: Recibe la respuesta exacta del AuthController (ahora incluye idUsuario)
     const login = (authResponse) => {
-        const { token, email, nombres, rol } = authResponse;
+        const { token, email, nombres, rol, idUsuario } = authResponse;
 
         // Guardamos en el localStorage para mantener sesión al recargar
         localStorage.setItem('token', token);
         localStorage.setItem('email', email);
         localStorage.setItem('nombres', nombres);
         localStorage.setItem('rol', rol);
+        localStorage.setItem('idUsuario', idUsuario);
 
         // Actualizamos el estado global
-        setUser({ token, email, nombres, rol });
+        setUser({ token, email, nombres, rol, idUsuario: Number(idUsuario) });
 
         return rol; // Retorna el rol para que el formulario sepa a qué ruta redirigir
     };
@@ -43,6 +45,7 @@ export const AuthProvider = ({ children }) => {
         localStorage.removeItem('email');
         localStorage.removeItem('nombres');
         localStorage.removeItem('rol');
+        localStorage.removeItem('idUsuario');
         setUser(null);
     };
 

@@ -2,6 +2,7 @@ package com.pochitastore.marketplace.repository;
 
 import com.pochitastore.marketplace.entity.Producto;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
 
@@ -30,4 +31,7 @@ public interface ProductoRepository
             Double min,
             Double max
     );
+
+    @Query("SELECT p FROM Producto p JOIN FETCH p.imagenes WHERE p.idProducto = :id")
+    Producto findWithImages(Long id);
 }

@@ -1,17 +1,15 @@
 package com.pochitastore.marketplace.service;
 
-import com.pochitastore.marketplace.entity.Carrito;
-import com.pochitastore.marketplace.entity.CarritoItem;
-import com.pochitastore.marketplace.entity.Producto;
-import com.pochitastore.marketplace.entity.Usuario;
-import com.pochitastore.marketplace.repository.CarritoItemRepository;
-import com.pochitastore.marketplace.repository.CarritoRepository;
-import com.pochitastore.marketplace.repository.ProductoRepository;
-import com.pochitastore.marketplace.repository.UsuarioRepository;
+import com.pochitastore.marketplace.dto.CarritoDTO;
+import com.pochitastore.marketplace.entity.*;
+import com.pochitastore.marketplace.mapper.CarritoMapper;
+import com.pochitastore.marketplace.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -23,32 +21,50 @@ public class CarritoService {
     private final UsuarioRepository usuarioRepository;
 
     // =========================
-    // CRUD BÁSICO
+    // CRUD BÁSICO (DTO)
     // =========================
 
-    public List<Carrito> listar() {
-        return carritoRepository.findAll();
+    public List<CarritoDTO> listar() {
+
+        return carritoRepository.findAll()
+                .stream()
+                .map(CarritoMapper::toDTO)
+                .collect(Collectors.toList());
     }
 
-    public Carrito obtener(Long id) {
-        return carritoRepository.findById(id).orElse(null);
+    public CarritoDTO obtener(Long id) {
+
+        Carrito carrito = carritoRepository.findById(id)
+                .orElse(null);
+
+        return CarritoMapper.toDTO(carrito);
     }
 
-    public Carrito guardar(Carrito carrito) {
-        return carritoRepository.save(carrito);
+    public CarritoDTO guardar(Carrito carrito) {
+
+        carrito.setCreatedAt(LocalDateTime.now());
+        carrito.setUpdatedAt(LocalDateTime.now());
+
+        Carrito saved = carritoRepository.save(carrito);
+
+        return CarritoMapper.toDTO(saved);
     }
 
-    public Carrito actualizar(Long id, Carrito carritoActualizado) {
+    public CarritoDTO actualizar(Long id, Carrito carritoActualizado) {
 
-        Carrito carrito = carritoRepository.findById(id).orElse(null);
+        Carrito carrito = carritoRepository.findById(id)
+                .orElse(null);
 
         if (carrito == null) {
             return null;
         }
 
         carrito.setEstado(carritoActualizado.getEstado());
+        carrito.setUpdatedAt(LocalDateTime.now());
 
-        return carritoRepository.save(carrito);
+        Carrito updated = carritoRepository.save(carrito);
+
+        return CarritoMapper.toDTO(updated);
     }
 
     public void eliminar(Long id) {
@@ -56,24 +72,31 @@ public class CarritoService {
     }
 
     // =========================
-    // LÓGICA REAL DE NEGOCIO
+    // LÓGICA REAL
     // =========================
 
-    public Carrito obtenerCarritoUsuario(Long usuarioId) {
+    public Carrito obtenerCarritoEntity(Long usuarioId) {
 
-        return carritoRepository.findByUsuarioIdUsuario(usuarioId)
+        return carritoRepository
+                .findByUsuarioIdUsuario(usuarioId)
                 .orElse(null);
     }
 
-    public Carrito agregarProducto(Long usuarioId,
-                                   Long productoId,
-                                   Integer cantidad) {
+    public CarritoDTO obtenerCarritoUsuario(Long usuarioId) {
 
-        Usuario usuario = usuarioRepository.findById(usuarioId)
+        Carrito carrito = carritoRepository
+                .findByUsuarioIdUsuario(usuarioId)
                 .orElse(null);
 
-        Producto producto = productoRepository.findById(productoId)
-                .orElse(null);
+        return CarritoMapper.toDTO(carrito);
+    }
+
+    public CarritoDTO agregarProducto(Long usuarioId,
+                                      Long productoId,
+                                      Integer cantidad) {
+
+        Usuario usuario = usuarioRepository.findById(usuarioId).orElse(null);
+        Producto producto = productoRepository.findById(productoId).orElse(null);
 
         if (usuario == null || producto == null) {
             return null;
@@ -83,32 +106,29 @@ public class CarritoService {
                 .findByUsuarioIdUsuario(usuarioId)
                 .orElseGet(() -> {
 
-                    Carrito nuevoCarrito = new Carrito();
-                    nuevoCarrito.setUsuario(usuario);
-                    nuevoCarrito.setEstado("ACTIVO");
+                    Carrito nuevo = new Carrito();
+                    nuevo.setUsuario(usuario);
+                    nuevo.setEstado("ACTIVO");
+                    nuevo.setCreatedAt(LocalDateTime.now());
+                    nuevo.setUpdatedAt(LocalDateTime.now());
 
-                    return carritoRepository.save(nuevoCarrito);
+                    return carritoRepository.save(nuevo);
                 });
 
-        CarritoItem itemExistente = carritoItemRepository
-                .findByCarritoIdCarritoAndProductoIdProducto(
+        CarritoItem itemExistente =
+                carritoItemRepository.findByCarritoIdCarritoAndProductoIdProducto(
                         carrito.getIdCarrito(),
                         productoId
-                )
-                .orElse(null);
+                ).orElse(null);
 
         if (itemExistente != null) {
 
-            itemExistente.setCantidad(
-                    itemExistente.getCantidad() + cantidad
-            );
-
+            itemExistente.setCantidad(itemExistente.getCantidad() + cantidad);
             carritoItemRepository.save(itemExistente);
 
         } else {
 
             CarritoItem item = new CarritoItem();
-
             item.setCarrito(carrito);
             item.setProducto(producto);
             item.setCantidad(cantidad);
@@ -117,51 +137,49 @@ public class CarritoService {
             carritoItemRepository.save(item);
         }
 
-        return carrito;
+        // 🔥 recargar carrito actualizado
+        Carrito updated = carritoRepository
+                .findByUsuarioIdUsuario(usuarioId)
+                .orElse(null);
+
+        return CarritoMapper.toDTO(updated);
     }
 
     public void eliminarProducto(Long carritoItemId) {
-
         carritoItemRepository.deleteById(carritoItemId);
     }
 
     public void vaciarCarrito(Long carritoId) {
 
-        List<CarritoItem> items = carritoItemRepository
-                .findByCarritoIdCarrito(carritoId);
+        List<CarritoItem> items =
+                carritoItemRepository.findByCarritoIdCarrito(carritoId);
 
         carritoItemRepository.deleteAll(items);
     }
 
-    public CarritoItem actualizarCantidad(Long carritoItemId,
-                                          Integer cantidad) {
+    public void actualizarCantidad(Long carritoItemId,
+                                   Integer cantidad) {
 
-        CarritoItem item = carritoItemRepository
-                .findById(carritoItemId)
-                .orElse(null);
+        CarritoItem item = carritoItemRepository.findById(carritoItemId).orElse(null);
 
-        if (item == null) {
-            return null;
-        }
+        if (item == null) return;
 
         item.setCantidad(cantidad);
 
-        return carritoItemRepository.save(item);
+        carritoItemRepository.save(item);
     }
 
     public Double calcularTotal(Long carritoId) {
 
-        List<CarritoItem> items = carritoItemRepository
-                .findByCarritoIdCarrito(carritoId);
+        List<CarritoItem> items =
+                carritoItemRepository.findByCarritoIdCarrito(carritoId);
 
         double total = 0;
 
         for (CarritoItem item : items) {
-
-            total += item.getCantidad()
-                    * item.getPrecioUnitario();
+            total += item.getCantidad() * item.getPrecioUnitario();
         }
 
-        return total;
+        return Math.round(total * 100.0) / 100.0;
     }
 }

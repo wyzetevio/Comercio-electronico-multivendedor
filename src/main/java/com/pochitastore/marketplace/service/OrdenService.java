@@ -83,8 +83,7 @@ public class OrdenService {
 
         // OBTENER CARRITO
 
-        Carrito carrito = carritoService
-                .obtenerCarritoUsuario(usuarioId);
+        Carrito carrito = carritoService.obtenerCarritoEntity(usuarioId);
 
         if (carrito == null) {
             throw new RuntimeException("Carrito no encontrado");

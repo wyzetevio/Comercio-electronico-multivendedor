@@ -12,7 +12,6 @@ import {
   validarPassword,
   confirmarPassword,
   validarNombre,
-  validarTelefono,
 } from "../../utils/validators";
 
 function Registro() {
@@ -23,8 +22,6 @@ function Registro() {
     email: "",
     password: "",
     confirmarPassword: "",
-    telefono: "",
-    direccion: "",
   });
 
   const [error, setError] = useState("");
@@ -56,11 +53,6 @@ function Registro() {
       setError("Las contraseñas no coinciden.");
       return;
     }
-    if (form.telefono && !validarTelefono(form.telefono)) {
-      setError("El teléfono debe tener 9 dígitos.");
-      return;
-    }
-
     setLoading(true);
     try {
       await registrarCliente({
@@ -68,8 +60,6 @@ function Registro() {
         apellidos: "",
         email: form.email,
         password: form.password,
-        telefono: form.telefono || undefined,
-        direccion: form.direccion || undefined,
       });
 
       setSuccess("Registro exitoso. Redirigiendo al inicio de sesión...");
@@ -153,29 +143,6 @@ function Registro() {
               placeholder="Repita la contraseña"
               value={form.confirmarPassword}
               onChange={handleChange("confirmarPassword")}
-            />
-          </div>
-
-          <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">
-              Teléfono (opcional)
-            </label>
-            <Input
-              type="tel"
-              placeholder="999888777"
-              value={form.telefono}
-              onChange={handleChange("telefono")}
-            />
-          </div>
-
-          <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">
-              Dirección (opcional)
-            </label>
-            <Input
-              placeholder="Av. Principal 123"
-              value={form.direccion}
-              onChange={handleChange("direccion")}
             />
           </div>
 

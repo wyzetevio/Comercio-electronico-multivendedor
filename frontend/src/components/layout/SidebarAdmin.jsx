@@ -13,20 +13,12 @@ function SidebarAdmin() {
           Dashboard
         </Link>
 
-        <Link to="/admin/usuarios" className="block hover:bg-red-600 p-2 rounded">
-          Usuarios
+        <Link to="/admin/moderacion" className="block hover:bg-red-600 p-2 rounded">
+          Moderación
         </Link>
 
-        <Link to="/admin/productos" className="block hover:bg-red-600 p-2 rounded">
-          Productos
-        </Link>
-
-        <Link to="/admin/ordenes" className="block hover:bg-red-600 p-2 rounded">
-          Órdenes
-        </Link>
-
-        <Link to="/admin/reportes" className="block hover:bg-red-600 p-2 rounded">
-          Reportes
+        <Link to="/admin/liquidaciones" className="block hover:bg-red-600 p-2 rounded">
+          Liquidaciones
         </Link>
       </nav>
 

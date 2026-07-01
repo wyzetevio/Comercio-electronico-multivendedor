@@ -1,5 +1,3 @@
-import { useCart } from "../../context/CartContext";
-
 function CartSummary({ total }) {
   return (
     <div className="p-4 border rounded-lg">

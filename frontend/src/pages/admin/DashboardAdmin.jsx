@@ -34,10 +34,10 @@ function DashboardAdmin() {
           vendedores: vendedores.length,
           productos: productos.length,
           pendientes: vendedores.filter(
-            (v) => !v.verificado && !v.suspendido,
+            (v) => !v.estadoVerificacion && v.activo !== false,
           ).length,
-          suspendidos: vendedores.filter((v) => v.suspendido).length,
-          verificado: vendedores.filter((v) => v.verificado).length,
+          suspendidos: vendedores.filter((v) => v.activo === false).length,
+          verificado: vendedores.filter((v) => v.estadoVerificacion).length,
         });
       } catch {
         setError("Error al cargar estadísticas.");

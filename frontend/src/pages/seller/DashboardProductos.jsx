@@ -173,7 +173,7 @@ function DashboardProductos() {
 
   const handleToggle = async (producto) => {
     try {
-      if (producto.activo === false) {
+      if (producto.estado === false) {
         await activarProducto(producto.idProducto);
       } else {
         await desactivarProducto(producto.idProducto);
@@ -263,9 +263,9 @@ function DashboardProductos() {
                     </td>
                     <td className="px-6 py-4">
                       <Badge
-                        variant={p.activo !== false ? "success" : "gray"}
+                        variant={p.estado !== false ? "success" : "gray"}
                       >
-                        {p.activo !== false ? "Activo" : "Inactivo"}
+                        {p.estado !== false ? "Activo" : "Inactivo"}
                       </Badge>
                     </td>
                     <td className="px-6 py-4">
@@ -281,12 +281,12 @@ function DashboardProductos() {
                           variant="ghost"
                           onClick={() => handleToggle(p)}
                           title={
-                            p.activo !== false
+                            p.estado !== false
                               ? "Desactivar"
                               : "Activar"
                           }
                         >
-                          {p.activo !== false ? (
+                          {p.estado !== false ? (
                             <ToggleRight
                               size={18}
                               className="text-green-600"

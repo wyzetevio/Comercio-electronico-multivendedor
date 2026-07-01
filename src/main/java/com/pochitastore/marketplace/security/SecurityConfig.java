@@ -35,8 +35,8 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/productos/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/categorias/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/tiendas/**").permitAll()
-                // Gestión de usuarios — solo ADMIN
-                .requestMatchers("/api/usuarios/**").hasAuthority("ADMIN")
+                // Gestión de usuarios — cualquier usuario autenticado
+                .requestMatchers("/api/usuarios/**").authenticated()
                 // Crear y editar categorías — solo ADMIN
                 .requestMatchers(HttpMethod.POST, "/api/categorias/**").hasAuthority("ADMIN")
                 .requestMatchers(HttpMethod.PUT, "/api/categorias/**").hasAuthority("ADMIN")

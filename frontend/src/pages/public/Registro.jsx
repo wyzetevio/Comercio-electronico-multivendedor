@@ -65,6 +65,7 @@ function Registro() {
     try {
       await registrarCliente({
         nombres: form.nombres,
+        apellidos: "",
         email: form.email,
         password: form.password,
         telefono: form.telefono || undefined,

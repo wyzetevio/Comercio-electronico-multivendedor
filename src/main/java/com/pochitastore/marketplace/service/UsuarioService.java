@@ -102,25 +102,13 @@ public class UsuarioService {
         Usuario usuario =
                 obtenerUsuario(idUsuario);
 
-        if (datos.getNombres() != null) {
-            usuario.setNombres(datos.getNombres());
-        }
+        usuario.setNombres(
+                datos.getNombres()
+        );
 
-        if (datos.getApellidos() != null) {
-            usuario.setApellidos(datos.getApellidos());
-        }
-
-        if (datos.getEmail() != null) {
-            usuario.setEmail(datos.getEmail());
-        }
-
-        if (datos.getTelefono() != null) {
-            usuario.setTelefono(datos.getTelefono());
-        }
-
-        if (datos.getDireccion() != null) {
-            usuario.setDireccion(datos.getDireccion());
-        }
+        usuario.setApellidos(
+                datos.getApellidos()
+        );
 
         usuario.setUpdatedAt(
                 LocalDateTime.now()

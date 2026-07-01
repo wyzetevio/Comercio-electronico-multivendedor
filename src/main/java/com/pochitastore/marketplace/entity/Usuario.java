@@ -24,7 +24,7 @@ public class Usuario {
     @Column(nullable = false, length = 100)
     private String nombres;
 
-    @Column(length = 100)
+    @Column(nullable = false, length = 100)
     private String apellidos;
 
     @Column(nullable = false, unique = true, length = 150)
@@ -44,10 +44,4 @@ public class Usuario {
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
-
-    @Column(length = 20)
-    private String telefono;
-
-    @Column(length = 255)
-    private String direccion;
 }

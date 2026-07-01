@@ -63,7 +63,7 @@ function DashboardModeracion() {
 
   const handleToggleProducto = async (producto) => {
     try {
-      if (producto.activo !== false) {
+      if (producto.estado !== false) {
         await desactivarProducto(producto.idProducto);
       } else {
         await activarProducto(producto.idProducto);
@@ -167,16 +167,16 @@ function DashboardModeracion() {
                       {formatearPrecio(p.precio)}
                     </td>
                     <td className="px-6 py-4">
-                      <Badge variant={p.activo !== false ? "success" : "gray"}>
-                        {p.activo !== false ? "Activo" : "Inactivo"}
+                      <Badge variant={p.estado !== false ? "success" : "gray"}>
+                        {p.estado !== false ? "Activo" : "Inactivo"}
                       </Badge>
                     </td>
                     <td className="px-6 py-4">
                       <Boton
-                        variant={p.activo !== false ? "danger" : "primary"}
+                        variant={p.estado !== false ? "danger" : "primary"}
                         size="sm"
                         onClick={() => {
-                          const accion = p.activo !== false ? "desactivar" : "activar";
+                          const accion = p.estado !== false ? "desactivar" : "activar";
                           confirmAction(
                             `${accion === "desactivar" ? "Desactivar" : "Activar"} producto`,
                             `¿Estás seguro de ${accion === "desactivar" ? "desactivar" : "activar"} "${p.nombre}"?`,
@@ -184,7 +184,7 @@ function DashboardModeracion() {
                           );
                         }}
                       >
-                        {p.activo !== false ? "Desactivar" : "Activar"}
+                        {p.estado !== false ? "Desactivar" : "Activar"}
                       </Boton>
                     </td>
                   </tr>
@@ -202,7 +202,6 @@ function DashboardModeracion() {
             <thead className="bg-gray-50 text-gray-600">
               <tr>
                 <th className="px-6 py-3 font-medium">Vendedor</th>
-                <th className="px-6 py-3 font-medium">Tienda</th>
                 <th className="px-6 py-3 font-medium">Contacto</th>
                 <th className="px-6 py-3 font-medium">Estado</th>
                 <th className="px-6 py-3 font-medium">Acción</th>
@@ -222,15 +221,12 @@ function DashboardModeracion() {
                       {v.usuario?.nombres || "—"}
                     </td>
                     <td className="px-6 py-4 text-gray-500">
-                      {v.tienda?.nombreTienda || "—"}
-                    </td>
-                    <td className="px-6 py-4 text-gray-500">
-                      {v.usuario?.email || v.telefonoContacto || "—"}
+                      {v.usuario?.email || "—"}
                     </td>
                     <td className="px-6 py-4">
-                      {v.verificado ? (
+                      {v.estadoVerificacion ? (
                         <Badge variant="success">Verificado</Badge>
-                      ) : v.suspendido ? (
+                      ) : v.activo === false ? (
                         <Badge variant="danger">Suspendido</Badge>
                       ) : (
                         <Badge variant="warning">Pendiente</Badge>
@@ -238,7 +234,7 @@ function DashboardModeracion() {
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex gap-2">
-                        {!v.verificado && !v.suspendido && (
+                        {!v.estadoVerificacion && v.activo !== false && (
                           <Boton
                             variant="primary"
                             size="sm"
@@ -254,7 +250,7 @@ function DashboardModeracion() {
                             Verificar
                           </Boton>
                         )}
-                        {!v.suspendido && (
+                        {v.activo !== false && (
                           <Boton
                             variant="danger"
                             size="sm"
@@ -270,7 +266,7 @@ function DashboardModeracion() {
                             Suspender
                           </Boton>
                         )}
-                        {v.suspendido && (
+                        {v.activo === false && (
                           <Boton
                             variant="primary"
                             size="sm"

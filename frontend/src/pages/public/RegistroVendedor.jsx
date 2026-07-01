@@ -103,8 +103,10 @@ function RegistroVendedor() {
       setTimeout(() => navigate("/vendedor"), 2000);
     } catch (err) {
       setError(
-        err.response?.data?.message ||
-          "Error al crear la tienda. Intente de nuevo.",
+        err.response?.status === 403
+          ? "No tienes permisos para registrarte como vendedor. Contacta a un administrador."
+          : err.response?.data?.message ||
+            "Error al crear la tienda. Intente de nuevo.",
       );
     } finally {
       setLoading(false);

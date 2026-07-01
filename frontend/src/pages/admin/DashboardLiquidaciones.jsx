@@ -50,7 +50,7 @@ function DashboardLiquidaciones() {
               ...liquidacionesVendedor.map((l) => ({
                 ...l,
                 vendedorNombre: v.usuario?.nombres || "—",
-                tiendaNombre: v.tienda?.nombreTienda || "—",
+                tiendaNombre: "—",
               })),
             );
           }

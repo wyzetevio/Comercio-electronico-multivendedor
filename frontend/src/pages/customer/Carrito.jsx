@@ -27,7 +27,7 @@ import { formatearPrecio } from "../../utils/formatters";
 function Carrito() {
   const navigate = useNavigate();
   const { user } = useContext(AuthContext);
-  const { items, loading: cartLoading, clearCart, getCartTotal, cuponAplicado, aplicarCuponCodigo, removerCupon } = useCart();
+  const { items, loading: cartLoading, clearCart, getCartTotal, cuponAplicado, aplicarCuponCodigo, removerCupon, addToCart } = useCart();
   const [recommended, setRecommended] = useState([]);
   const [loadingRecommended, setLoadingRecommended] = useState(true);
 
@@ -442,7 +442,10 @@ function Carrito() {
                       {formatearPrecio(p.precio * 1.15)}
                     </span>
                   </div>
-                  <Boton className="w-full rounded-xl py-2.5 shadow-sm">
+                  <Boton 
+                    className="w-full rounded-xl py-2.5 shadow-sm"
+                    onClick={() => addToCart(p, 1)}
+                  >
                     + Agregar
                   </Boton>
                 </div>

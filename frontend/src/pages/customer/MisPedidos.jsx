@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { Package, ChevronDown, ChevronUp, ShieldCheck, CheckCircle2, Clock } from "lucide-react";
 
 import Badge from "../../components/ui/Badge";
@@ -90,7 +91,8 @@ function MisPedidos() {
   const [ordenes, setOrdenes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [expandida, setExpandida] = useState(null);
+  const location = useLocation();
+  const [expandida, setExpandida] = useState(location.state?.expandOrderId || null);
 
   useEffect(() => {
     const fetchOrdenes = async () => {

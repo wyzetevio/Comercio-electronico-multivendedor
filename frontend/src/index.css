@@ -9,3 +9,14 @@ body {
   display: flex;
   flex-direction: column;
 }
+
+.bg-grid-glow {
+  background-color: #faf8ff;
+  background-image: 
+    radial-gradient(circle at 15% 25%, rgba(139, 92, 246, 0.12) 0%, transparent 50%),
+    radial-gradient(circle at 85% 75%, rgba(168, 85, 247, 0.12) 0%, transparent 50%),
+    linear-gradient(to right, rgba(139, 92, 246, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(139, 92, 246, 0.05) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;
+}
+

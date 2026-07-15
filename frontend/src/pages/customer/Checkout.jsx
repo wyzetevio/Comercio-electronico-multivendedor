@@ -616,7 +616,10 @@ function Checkout() {
                 )}
               </button>
               
-              <button className="flex-1 rounded-2xl border-2 border-violet-100 bg-violet-50/50 text-violet-700 py-3.5 px-4 font-bold hover:bg-violet-100 hover:border-violet-200 transition-colors flex justify-center items-center gap-2 text-sm sm:text-base">
+              <button 
+                onClick={() => navigate("/mis-pedidos", { state: { expandOrderId: ordenCreada?.idOrden } })}
+                className="flex-1 rounded-2xl border-2 border-violet-100 bg-violet-50/50 text-violet-700 py-3.5 px-4 font-bold hover:bg-violet-100 hover:border-violet-200 transition-colors flex justify-center items-center gap-2 text-sm sm:text-base"
+              >
                 <MapPin size={20} /> 
                 Rastrear envío
               </button>

@@ -116,6 +116,11 @@ function Catalogo() {
     currentPage * itemsPerPage
   );
 
+  // Scroll al inicio de los productos cuando se cambia de página o se aplican filtros
+  useEffect(() => {
+    window.scrollTo({ top: 250, behavior: 'smooth' });
+  }, [currentPage, productosFiltrados]);
+
   const updateUrlParams = (newSearchTerm) => {
     if (newSearchTerm) setSearchParams({ search: newSearchTerm });
     else setSearchParams({});
@@ -250,7 +255,10 @@ function Catalogo() {
                 <ul className="space-y-2 max-h-48 overflow-y-auto custom-scrollbar">
                   {marcasDisponibles.map(marca => (
                     <li key={marca}>
-                      <label className="flex items-center gap-3 cursor-pointer group">
+                      <label 
+                        className="flex items-center gap-3 cursor-pointer group"
+                        onClick={(e) => { e.preventDefault(); handleMarcaChange(marca); }}
+                      >
                         <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${selectedMarcas.includes(marca) ? 'bg-violet-600 border-violet-600' : 'border-gray-300 group-hover:border-violet-400'
                           }`}>
                           {selectedMarcas.includes(marca) && <Check size={12} className="text-white" />}
@@ -377,7 +385,7 @@ function Catalogo() {
           ) : (
             <div className={
               viewMode === 'grid'
-                ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+                ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
                 : "flex flex-col gap-4"
             }>
               {currentProductos.map(producto => {
@@ -387,11 +395,10 @@ function Catalogo() {
 
                 return (
                   <div key={producto.idProducto} className={`bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow border border-gray-100 group ${viewMode === 'list' ? 'flex flex-row' : 'flex flex-col'}`}>
-
                     {/* Contenedor de Imagen */}
                     <div className={`relative bg-gray-50 flex-shrink-0 ${viewMode === 'list' ? 'w-32 sm:w-64 border-r border-gray-100' : 'w-full aspect-[4/3]'}`}>
                       {imgUrl ? (
-                        <img src={imgUrl} alt={producto.nombre} className="w-full h-full object-cover mix-blend-multiply p-4" />
+                        <img src={imgUrl} alt={producto.nombre} className="w-full h-full object-contain mix-blend-multiply p-4" />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-gray-400 font-medium">Sin Imagen</div>
                       )}
@@ -420,9 +427,8 @@ function Catalogo() {
                       </button>
                     </div>
 
-                    {/* Contenido del Producto */}
                     <div className={`flex flex-col flex-1 p-5 ${viewMode === 'list' ? 'justify-between' : ''}`}>
-                      <div className={viewMode === 'list' ? 'flex justify-between gap-6' : ''}>
+                      <div className={viewMode === 'list' ? 'flex justify-between gap-6' : 'flex flex-col flex-1 justify-between h-full'}>
                         <div className={viewMode === 'list' ? 'flex-1' : ''}>
                           <div className="flex items-center gap-2 mb-1.5">
                             <span className="text-xs font-semibold text-violet-600 uppercase tracking-wider">

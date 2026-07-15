@@ -83,4 +83,31 @@ public class OrdenController {
 
         return ordenService.completarOrden(idOrden);
     }
+
+    @GetMapping("/tienda/{idTienda}/subordenes")
+    public List<Suborden> obtenerSubordenesTienda(
+            @PathVariable Long idTienda
+    ) {
+        return ordenService.obtenerSubordenesPorTienda(idTienda);
+    }
+
+    @PutMapping("/suborden/{idSuborden}/estado")
+    public Suborden actualizarEstadoSuborden(
+            @PathVariable Long idSuborden,
+            @RequestParam String estado
+    ) {
+        return ordenService.actualizarEstadoSuborden(idSuborden, estado);
+    }
+
+    @GetMapping("/todas")
+    public List<Orden> obtenerTodasLasOrdenesAdmin() {
+        return ordenService.obtenerTodasLasOrdenes();
+    }
+
+    @GetMapping("/{idOrden}/detalles")
+    public List<com.pochitastore.marketplace.entity.DetalleSuborden> obtenerDetallesDeOrden(
+            @PathVariable Long idOrden
+    ) {
+        return ordenService.obtenerDetallesDeOrden(idOrden);
+    }
 }

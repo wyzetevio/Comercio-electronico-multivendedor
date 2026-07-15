@@ -21,6 +21,7 @@ public class DetalleSuborden {
 
     @ManyToOne
     @JoinColumn(name = "id_suborden", nullable = false)
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private Suborden suborden;
 
     @ManyToOne

@@ -26,10 +26,10 @@ public class TiendaController {
 
     @PostMapping
     public Tienda guardar(
-            @RequestParam Long idVendedor,
+            @RequestParam Long idUsuario,
             @RequestBody Tienda tienda
     ) {
-        return tiendaService.guardar(idVendedor, tienda);
+        return tiendaService.guardar(idUsuario, tienda);
     }
 
     @PutMapping("/{id}")

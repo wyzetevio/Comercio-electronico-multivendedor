@@ -19,10 +19,10 @@ export const obtenerTienda = async (idTienda) => {
 /**
  * Crear una tienda
  */
-export const crearTienda = async (idVendedor, tienda) => {
+export const crearTienda = async (idUsuario, tienda) => {
   const response = await api.post("/tiendas", tienda, {
     params: {
-      idVendedor,
+      idUsuario,
     },
   });
 

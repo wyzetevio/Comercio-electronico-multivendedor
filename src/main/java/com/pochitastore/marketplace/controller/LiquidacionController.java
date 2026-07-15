@@ -12,54 +12,42 @@ import java.util.List;
 @RequiredArgsConstructor
 public class LiquidacionController {
 
-    private final LiquidacionService liquidacionService;
+        private final LiquidacionService liquidacionService;
 
-    @PostMapping
-    public Liquidacion crearLiquidacion(
-            @RequestParam Long idVendedor,
-            @RequestBody List<Long> idsSubordenes
-    ) {
+        @PostMapping("/tienda/{idTienda}")
+        public Liquidacion crearLiquidacion(@PathVariable Long idTienda) {
+                return liquidacionService.crearLiquidacion(idTienda);
+        }
 
-        return liquidacionService.crearLiquidacion(
-                idVendedor,
-                idsSubordenes
-        );
-    }
+        @GetMapping("/{idLiquidacion}")
+        public Liquidacion obtenerLiquidacion(
+                        @PathVariable Long idLiquidacion) {
 
-    @GetMapping("/{idLiquidacion}")
-    public Liquidacion obtenerLiquidacion(
-            @PathVariable Long idLiquidacion
-    ) {
+                return liquidacionService
+                                .obtenerLiquidacion(idLiquidacion);
+        }
 
-        return liquidacionService
-                .obtenerLiquidacion(idLiquidacion);
-    }
+        @GetMapping("/vendedor/{idVendedor}")
+        public List<Liquidacion> obtenerLiquidacionesVendedor(
+                        @PathVariable Long idVendedor) {
 
-    @GetMapping("/vendedor/{idVendedor}")
-    public List<Liquidacion>
-    obtenerLiquidacionesVendedor(
-            @PathVariable Long idVendedor
-    ) {
+                return liquidacionService
+                                .obtenerLiquidacionesVendedor(idVendedor);
+        }
 
-        return liquidacionService
-                .obtenerLiquidacionesVendedor(idVendedor);
-    }
+        @PutMapping("/{idLiquidacion}/pagar")
+        public Liquidacion marcarPagada(
+                        @PathVariable Long idLiquidacion) {
 
-    @PutMapping("/{idLiquidacion}/pagar")
-    public Liquidacion marcarPagada(
-            @PathVariable Long idLiquidacion
-    ) {
+                return liquidacionService
+                                .marcarPagada(idLiquidacion);
+        }
 
-        return liquidacionService
-                .marcarPagada(idLiquidacion);
-    }
+        @PutMapping("/{idLiquidacion}/rechazar")
+        public Liquidacion rechazarLiquidacion(
+                        @PathVariable Long idLiquidacion) {
 
-    @PutMapping("/{idLiquidacion}/rechazar")
-    public Liquidacion rechazarLiquidacion(
-            @PathVariable Long idLiquidacion
-    ) {
-
-        return liquidacionService
-                .rechazarLiquidacion(idLiquidacion);
-    }
+                return liquidacionService
+                                .rechazarLiquidacion(idLiquidacion);
+        }
 }

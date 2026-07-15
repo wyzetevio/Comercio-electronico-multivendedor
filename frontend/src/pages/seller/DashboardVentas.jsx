@@ -8,7 +8,7 @@ import ErrorMessage from "../../components/common/ErrorMessage";
 import { useAuth } from "../../context/AuthContext";
 import { useStore } from "../../context/StoreContext";
 import {
-  obtenerOrdenesUsuario,
+  obtenerSubordenesTienda,
 } from "../../services/ordenService";
 import {
   formatearPrecio,
@@ -36,14 +36,8 @@ function DashboardVentas() {
   useEffect(() => {
     const fetchVentas = async () => {
       try {
-        const data = await obtenerOrdenesUsuario(user.idUsuario);
-        const filtradas = data.filter((o) =>
-          o.items?.some(
-            (item) => item.idTienda === tienda?.idTienda,
-          ) ||
-          o.subordenes?.length > 0
-        );
-        setVentas(filtradas.length > 0 ? filtradas : data);
+        const data = await obtenerSubordenesTienda(tienda.idTienda);
+        setVentas(data);
       } catch {
         setError("Error al cargar las ventas.");
       } finally {
@@ -51,8 +45,8 @@ function DashboardVentas() {
       }
     };
 
-    if (!storeLoading) fetchVentas();
-  }, [tienda, storeLoading, user.idUsuario]);
+    if (!storeLoading && tienda) fetchVentas();
+  }, [tienda, storeLoading]);
 
   if (storeLoading || loading) return <Spinner size="h-12 w-12" />;
   if (error) return <ErrorMessage message={error} />;
@@ -66,7 +60,7 @@ function DashboardVentas() {
         <p className="mt-2 text-gray-500">
           Crea tu tienda para empezar a vender.
         </p>
-        <Boton className="mt-4" onClick={() => {}}>
+        <Boton className="mt-4" onClick={() => { }}>
           Crear tienda
         </Boton>
       </div>
@@ -77,11 +71,12 @@ function DashboardVentas() {
     (s) => s.estado === "COMPLETADA" || s.estado === "ENTREGADA",
   );
   const totalVentas = completadas.reduce(
-    (sum, s) => sum + (s.total || 0),
+    (sum, s) => sum + (s.totalVendedor || 0),
     0,
   );
   const pendientes = ventas.filter(
     (s) =>
+      s.estado === "PENDIENTE" ||
       s.estado === "PAGADA" ||
       s.estado === "ENVIADA" ||
       s.estado === "EN_TRANSITO",
@@ -158,7 +153,7 @@ function DashboardVentas() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
+            <table className="w-full text-left text-sm whitespace-nowrap">
               <thead className="bg-gray-50 text-gray-600">
                 <tr>
                   <th className="px-6 py-3 font-medium">ID</th>
@@ -169,12 +164,12 @@ function DashboardVentas() {
               </thead>
               <tbody className="divide-y">
                 {ventas.map((orden) => (
-                  <tr key={orden.idOrden} className="hover:bg-gray-50">
+                  <tr key={orden.idSuborden} className="hover:bg-gray-50">
                     <td className="px-6 py-4 font-medium text-gray-800">
-                      #{orden.idOrden}
+                      #{orden.idSuborden}
                     </td>
                     <td className="px-6 py-4 text-gray-500">
-                      {formatearFecha(orden.fechaCreacion)}
+                      {formatearFecha(orden.createdAt)}
                     </td>
                     <td className="px-6 py-4">
                       <Badge
@@ -186,7 +181,7 @@ function DashboardVentas() {
                       </Badge>
                     </td>
                     <td className="px-6 py-4 font-semibold text-violet-600">
-                      {formatearPrecio(orden.total)}
+                      {formatearPrecio(orden.totalVendedor)}
                     </td>
                   </tr>
                 ))}

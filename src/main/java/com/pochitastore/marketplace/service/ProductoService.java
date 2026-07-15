@@ -4,10 +4,12 @@ import com.pochitastore.marketplace.dto.ProductoDTO;
 import com.pochitastore.marketplace.entity.Categoria;
 import com.pochitastore.marketplace.entity.Producto;
 import com.pochitastore.marketplace.entity.Tienda;
+import com.pochitastore.marketplace.entity.ImagenProducto;
 import com.pochitastore.marketplace.mapper.ProductoMapper;
 import com.pochitastore.marketplace.repository.CategoriaRepository;
 import com.pochitastore.marketplace.repository.ProductoRepository;
 import com.pochitastore.marketplace.repository.TiendaRepository;
+import com.pochitastore.marketplace.repository.ImagenProductoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -22,6 +24,7 @@ public class ProductoService {
     private final TiendaRepository tiendaRepository;
     private final CategoriaRepository categoriaRepository;
     private final ProductoMapper productoMapper;
+    private final ImagenProductoRepository imagenProductoRepository;
 
     // =========================
     // CREATE (ENTITY OK)
@@ -46,13 +49,23 @@ public class ProductoService {
         producto.setCreatedAt(LocalDateTime.now());
         producto.setUpdatedAt(LocalDateTime.now());
 
-        return productoRepository.save(producto);
+        Producto guardado = productoRepository.save(producto);
+        
+        if (producto.getImagenPrincipal() != null && !producto.getImagenPrincipal().isEmpty()) {
+            ImagenProducto img = new ImagenProducto();
+            img.setProducto(guardado);
+            img.setUrl(producto.getImagenPrincipal());
+            img.setEsPrincipal(true);
+            imagenProductoRepository.save(img);
+        }
+
+        return guardado;
     }
 
     // =========================
     // UPDATE (ENTITY OK)
     // =========================
-    public Producto actualizarProducto(Long idProducto, Producto datos) {
+    public Producto actualizarProducto(Long idProducto, Producto datos, Long idCategoria) {
 
         Producto producto = obtenerProductoEntity(idProducto);
 
@@ -61,8 +74,30 @@ public class ProductoService {
         producto.setPrecio(datos.getPrecio());
         producto.setStock(datos.getStock());
         producto.setUpdatedAt(LocalDateTime.now());
+        
+        if (idCategoria != null) {
+            Categoria categoria = categoriaRepository.findById(idCategoria)
+                    .orElseThrow(() -> new RuntimeException("Categoría no encontrada"));
+            producto.setCategoria(categoria);
+        }
 
-        return productoRepository.save(producto);
+        Producto guardado = productoRepository.save(producto);
+        
+        if (datos.getImagenPrincipal() != null && !datos.getImagenPrincipal().isEmpty()) {
+            if (guardado.getImagenes() == null || guardado.getImagenes().isEmpty()) {
+                ImagenProducto img = new ImagenProducto();
+                img.setProducto(guardado);
+                img.setUrl(datos.getImagenPrincipal());
+                img.setEsPrincipal(true);
+                imagenProductoRepository.save(img);
+            } else {
+                ImagenProducto img = guardado.getImagenes().get(0);
+                img.setUrl(datos.getImagenPrincipal());
+                imagenProductoRepository.save(img);
+            }
+        }
+
+        return guardado;
     }
 
     // =========================
@@ -102,6 +137,13 @@ public class ProductoService {
 
     public List<ProductoDTO> obtenerProductosTienda(Long idTienda) {
         return productoRepository.findByTiendaIdTiendaAndEstadoTrue(idTienda)
+                .stream()
+                .map(productoMapper::toDTO)
+                .toList();
+    }
+
+    public List<ProductoDTO> obtenerTodosProductosTienda(Long idTienda) {
+        return productoRepository.findByTiendaIdTienda(idTienda)
                 .stream()
                 .map(productoMapper::toDTO)
                 .toList();

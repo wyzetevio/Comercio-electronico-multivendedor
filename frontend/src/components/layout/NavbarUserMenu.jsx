@@ -32,8 +32,10 @@ function NavbarUserMenu() {
   }, []);
 
   const handleLogout = () => {
-    logout();
-    navigate("/login", { replace: true });
+    if (window.confirm("¿Estás seguro que deseas cerrar sesión?")) {
+      logout();
+      navigate("/", { replace: true });
+    }
   };
 
   if (!user) {
@@ -125,6 +127,16 @@ function NavbarUserMenu() {
           >
             Mi perfil
           </NavLink>
+
+          {user.rol === "CLIENTE" && (
+            <NavLink
+              to="/mis-pedidos"
+              className="block px-4 py-3 hover:bg-gray-100"
+              onClick={() => setOpen(false)}
+            >
+              Mis pedidos
+            </NavLink>
+          )}
 
           <button
             onClick={handleLogout}

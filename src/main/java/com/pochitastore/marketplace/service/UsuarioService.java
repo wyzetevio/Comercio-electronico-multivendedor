@@ -15,171 +15,157 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class UsuarioService {
 
-    private final UsuarioRepository usuarioRepository;
+        private final UsuarioRepository usuarioRepository;
 
-    private final VendedorRepository vendedorRepository;
+        private final VendedorRepository vendedorRepository;
 
-    private final PasswordEncoder passwordEncoder;
+        private final PasswordEncoder passwordEncoder;
 
+        public Usuario registrarCliente(
+                        Usuario usuario) {
 
-    public Usuario registrarCliente(
-            Usuario usuario
-    ) {
+                // validar email
 
-        // validar email
+                if (usuarioRepository.findByEmail(
+                                usuario.getEmail()).isPresent()) {
 
-        if (usuarioRepository.findByEmail(
-                usuario.getEmail()
-        ).isPresent()) {
+                        throw new RuntimeException(
+                                        "El email ya está registrado");
+                }
 
-            throw new RuntimeException(
-                    "El email ya está registrado"
-            );
+                usuario.setPassword(
+                                passwordEncoder.encode(
+                                                usuario.getPassword()));
+
+                // validar y asignar rol
+                String rolRecibido = usuario.getRol();
+                if (rolRecibido == null || rolRecibido.isBlank()) {
+                        usuario.setRol("CLIENTE");
+                } else if (!Set.of("ADMIN", "VENDEDOR", "CLIENTE").contains(rolRecibido)) {
+                        throw new RuntimeException(
+                                        "Rol inválido. Los roles permitidos son: ADMIN, VENDEDOR, CLIENTE");
+                } else {
+                        usuario.setRol(rolRecibido);
+                }
+
+                usuario.setEstado(true);
+
+                usuario.setCreatedAt(
+                                LocalDateTime.now());
+
+                usuario.setUpdatedAt(
+                                LocalDateTime.now());
+
+                Usuario saved = usuarioRepository.save(usuario);
+
+                if ("VENDEDOR".equals(saved.getRol())) {
+                        Vendedor vendedor = new Vendedor();
+                        vendedor.setUsuario(saved);
+                        vendedor.setActivo(true);
+                        vendedor.setEstadoVerificacion(false);
+                        vendedor.setCreatedAt(LocalDateTime.now());
+                        vendedor.setUpdatedAt(LocalDateTime.now());
+                        vendedorRepository.save(vendedor);
+                }
+
+                return saved;
         }
 
-        usuario.setPassword(
-                passwordEncoder.encode(
-                        usuario.getPassword()
-                )
-        );
+        public Usuario obtenerUsuario(
+                        Long idUsuario) {
 
-        // validar y asignar rol
-        String rolRecibido = usuario.getRol();
-        if (rolRecibido == null || rolRecibido.isBlank()) {
-            usuario.setRol("CLIENTE");
-        } else if (!Set.of("ADMIN", "VENDEDOR", "CLIENTE").contains(rolRecibido)) {
-            throw new RuntimeException(
-                    "Rol inválido. Los roles permitidos son: ADMIN, VENDEDOR, CLIENTE"
-            );
-        } else {
-            usuario.setRol(rolRecibido);
+                return usuarioRepository.findById(idUsuario)
+                                .orElseThrow(() -> new RuntimeException(
+                                                "Usuario no encontrado"));
         }
 
-        usuario.setEstado(true);
+        public Usuario actualizarPerfil(
+                        Long idUsuario,
+                        Usuario datos) {
 
-        usuario.setCreatedAt(
-                LocalDateTime.now()
-        );
+                Usuario usuario = obtenerUsuario(idUsuario);
 
-        usuario.setUpdatedAt(
-                LocalDateTime.now()
-        );
+                usuario.setNombres(
+                                datos.getNombres());
 
-        Usuario saved = usuarioRepository.save(usuario);
+                usuario.setApellidos(
+                                datos.getApellidos());
 
-        if ("VENDEDOR".equals(saved.getRol())) {
-            Vendedor vendedor = new Vendedor();
-            vendedor.setUsuario(saved);
-            vendedor.setActivo(true);
-            vendedor.setEstadoVerificacion(false);
-            vendedor.setCreatedAt(LocalDateTime.now());
-            vendedor.setUpdatedAt(LocalDateTime.now());
-            vendedorRepository.save(vendedor);
+                usuario.setUpdatedAt(
+                                LocalDateTime.now());
+
+                return usuarioRepository.save(usuario);
         }
 
-        return saved;
-    }
+        public Usuario desactivarCuenta(
+                        Long idUsuario) {
 
+                Usuario usuario = obtenerUsuario(idUsuario);
 
-    public Usuario obtenerUsuario(
-            Long idUsuario
-    ) {
+                usuario.setEstado(false);
 
-        return usuarioRepository.findById(idUsuario)
-                .orElseThrow(() ->
-                        new RuntimeException(
-                                "Usuario no encontrado"
-                        )
-                );
-    }
+                usuario.setUpdatedAt(
+                                LocalDateTime.now());
 
-
-    public Usuario actualizarPerfil(
-            Long idUsuario,
-            Usuario datos
-    ) {
-
-        Usuario usuario =
-                obtenerUsuario(idUsuario);
-
-        usuario.setNombres(
-                datos.getNombres()
-        );
-
-        usuario.setApellidos(
-                datos.getApellidos()
-        );
-
-        usuario.setUpdatedAt(
-                LocalDateTime.now()
-        );
-
-        return usuarioRepository.save(usuario);
-    }
-
-
-    public Usuario desactivarCuenta(
-            Long idUsuario
-    ) {
-
-        Usuario usuario =
-                obtenerUsuario(idUsuario);
-
-        usuario.setEstado(false);
-
-        usuario.setUpdatedAt(
-                LocalDateTime.now()
-        );
-
-        return usuarioRepository.save(usuario);
-    }
-
-    public Vendedor convertirEnVendedor(
-            Long idUsuario
-    ) {
-
-        Usuario usuario =
-                obtenerUsuario(idUsuario);
-
-        // validar si ya es vendedor
-
-        if (usuario.getRol()
-                .equals("VENDEDOR")) {
-
-            throw new RuntimeException(
-                    "El usuario ya es vendedor"
-            );
+                return usuarioRepository.save(usuario);
         }
 
-        // cambiar rol
+        public Vendedor convertirEnVendedor(
+                        Long idUsuario) {
 
-        usuario.setRol("VENDEDOR");
+                Usuario usuario = obtenerUsuario(idUsuario);
 
-        usuario.setUpdatedAt(
-                LocalDateTime.now()
-        );
+                // validar si ya es vendedor
 
-        usuarioRepository.save(usuario);
+                if (usuario.getRol()
+                                .equals("VENDEDOR")) {
 
-        // crear vendedor
+                        return vendedorRepository.findByUsuario(usuario)
+                                        .orElseThrow(() -> new RuntimeException(
+                                                        "Vendedor no encontrado para el usuario"));
+                }
 
-        Vendedor vendedor =
-                new Vendedor();
+                // cambiar rol
 
-        vendedor.setUsuario(usuario);
+                usuario.setRol("VENDEDOR");
 
-        vendedor.setActivo(true);
+                usuario.setUpdatedAt(
+                                LocalDateTime.now());
 
-        vendedor.setEstadoVerificacion(false);
+                usuarioRepository.save(usuario);
 
-        vendedor.setCreatedAt(
-                LocalDateTime.now()
-        );
+                // crear vendedor
 
-        vendedor.setUpdatedAt(
-                LocalDateTime.now()
-        );
+                Vendedor vendedor = new Vendedor();
 
-        return vendedorRepository.save(vendedor);
-    }
+                vendedor.setUsuario(usuario);
+
+                vendedor.setActivo(true);
+
+                vendedor.setEstadoVerificacion(false);
+
+                vendedor.setCreatedAt(
+                                LocalDateTime.now());
+
+                vendedor.setUpdatedAt(
+                                LocalDateTime.now());
+
+                return vendedorRepository.save(vendedor);
+        }
+
+        // Función para obtener solo los clientes
+        public java.util.List<Usuario> listarClientes() {
+                return usuarioRepository.findByRol("CLIENTE");
+        }
+
+        // Función para activar o desactivar una cuenta (bloquear/desbloquear)
+        public Usuario cambiarEstadoCuenta(Long idUsuario) {
+                Usuario usuario = obtenerUsuario(idUsuario);
+                // Invierte el estado actual (si es true pasa a false, si es false pasa a true)
+                usuario.setEstado(!usuario.getEstado());
+                usuario.setUpdatedAt(java.time.LocalDateTime.now());
+
+                return usuarioRepository.save(usuario);
+        }
+
 }

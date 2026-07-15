@@ -21,8 +21,10 @@ public class ImagenProducto {
 
     @ManyToOne
     @JoinColumn(name = "id_producto", nullable = false)
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private Producto producto;
 
+    @Column(columnDefinition = "TEXT")
     private String url;
 
     private Integer posicion;

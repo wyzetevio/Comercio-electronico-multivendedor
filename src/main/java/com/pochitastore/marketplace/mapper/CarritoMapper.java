@@ -15,13 +15,12 @@ public class CarritoMapper {
             return null;
         }
 
-        List<CarritoItem> items =
-                carrito.getItems() == null
-                        ? new ArrayList<>()
-                        : carrito.getItems();
+        List<CarritoItem> items = carrito.getItems() == null
+                ? new ArrayList<>()
+                : carrito.getItems();
 
         List<CarritoItemDTO> itemsDTO = items.stream()
-                .map(item -> toItemDTO(item)) // 👈 EVITA method reference error
+                .map(item -> toItemDTO(item)) // EVITA method reference error
                 .collect(Collectors.toList());
 
         double total = itemsDTO.stream()
@@ -78,8 +77,7 @@ public class CarritoMapper {
                     .orElse(
                             item.getProducto().getImagenes()
                                     .get(0)
-                                    .getUrl()
-                    );
+                                    .getUrl());
         }
 
         return CarritoItemDTO.builder()

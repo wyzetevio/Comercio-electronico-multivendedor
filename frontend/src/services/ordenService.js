@@ -94,3 +94,38 @@ export const completarOrden = async (idOrden) => {
   const { data } = await api.put(`/ordenes/${idOrden}/completar`);
   return data;
 };
+
+/**
+ * Obtiene las subórdenes de una tienda.
+ *
+ * @param {number} idTienda ID de la tienda.
+ * @returns {Promise<Array>} Lista de subórdenes.
+ */
+export const obtenerSubordenesTienda = async (idTienda) => {
+  const { data } = await api.get(`/ordenes/tienda/${idTienda}/subordenes`);
+  return data;
+};
+
+/**
+ * Actualiza el estado de una suborden.
+ *
+ * @param {number} idSuborden ID de la suborden.
+ * @param {string} estado Nuevo estado.
+ * @returns {Promise<Object>} Suborden actualizada.
+ */
+export const actualizarEstadoSuborden = async (idSuborden, estado) => {
+  const { data } = await api.put(`/ordenes/suborden/${idSuborden}/estado`, null, {
+    params: { estado },
+  });
+  return data;
+};
+
+export const obtenerTodasLasOrdenesAdmin = async () => {
+  const { data } = await api.get("/ordenes/todas");
+  return data;
+};
+
+export const obtenerDetallesOrden = async (idOrden) => {
+  const { data } = await api.get(`/ordenes/${idOrden}/detalles`);
+  return data;
+};

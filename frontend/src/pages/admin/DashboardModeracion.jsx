@@ -58,7 +58,7 @@ function DashboardModeracion() {
   }, []);
 
   const confirmAction = (title, message, onConfirm) => {
-    setConfirmModal({ open: true, title, message, onConfirm: () => onConfirm });
+    setConfirmModal({ open: true, title, message, onConfirm });
   };
 
   const handleToggleProducto = async (producto) => {
@@ -121,7 +121,7 @@ function DashboardModeracion() {
       {/* Tabla de productos */}
       {tab === "productos" && (
         <div className="overflow-hidden rounded-xl bg-white shadow-sm">
-          <table className="w-full text-left text-sm">
+          <table className="w-full text-left text-sm whitespace-nowrap">
             <thead className="bg-gray-50 text-gray-600">
               <tr>
                 <th className="px-6 py-3 font-medium">Producto</th>
@@ -198,7 +198,7 @@ function DashboardModeracion() {
       {/* Tabla de vendedores */}
       {tab === "vendedores" && (
         <div className="overflow-hidden rounded-xl bg-white shadow-sm">
-          <table className="w-full text-left text-sm">
+          <table className="w-full text-left text-sm whitespace-nowrap">
             <thead className="bg-gray-50 text-gray-600">
               <tr>
                 <th className="px-6 py-3 font-medium">Vendedor</th>

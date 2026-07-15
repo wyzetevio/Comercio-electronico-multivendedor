@@ -41,6 +41,16 @@ export const obtenerPagosOrden = async (idOrden) => {
 };
 
 /**
+ * Obtiene todos los pagos registrados.
+ *
+ * @returns {Promise<Array>} Lista de todos los pagos.
+ */
+export const obtenerTodosLosPagos = async () => {
+  const { data } = await api.get("/pagos/todos");
+  return data;
+};
+
+/**
  * Aprueba un pago.
  *
  * @param {number} idPago ID del pago.

@@ -93,4 +93,8 @@ public class PagoService {
 
         return pagoRepository.findByOrdenIdOrden(idOrden);
     }
+
+    public List<Pago> obtenerTodosLosPagos() {
+        return pagoRepository.findAll();
+    }
 }

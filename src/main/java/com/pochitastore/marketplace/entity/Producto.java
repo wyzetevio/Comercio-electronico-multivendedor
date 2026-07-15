@@ -30,15 +30,16 @@ public class Producto {
     @JoinColumn(name = "id_categoria", nullable = false)
     private Categoria categoria;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 5000)
     private String nombre;
 
+    @Column(columnDefinition = "TEXT")
     private String descripcion;
 
+    @Column(length = 5000)
+    private String marca;
     private Double precio;
-
     private Integer stock;
-
     private Boolean estado;
 
     @Column(name = "created_at")
@@ -49,4 +50,7 @@ public class Producto {
 
     @OneToMany(mappedBy = "producto", fetch = FetchType.LAZY)
     private List<ImagenProducto> imagenes;
+
+    @Transient
+    private String imagenPrincipal;
 }

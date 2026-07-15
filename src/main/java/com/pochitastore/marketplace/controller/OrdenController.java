@@ -24,12 +24,13 @@ public class OrdenController {
     @PostMapping("/checkout")
     public Orden crearOrdenDesdeCarrito(
             @RequestParam Long usuarioId,
-            @RequestParam Long direccionId
+            @RequestParam Long direccionId,
+            @RequestParam(required = false) String codigoCupon
     ) {
-
         return ordenService.crearOrdenDesdeCarrito(
                 usuarioId,
-                direccionId
+                direccionId,
+                codigoCupon
         );
     }
 

@@ -19,6 +19,11 @@ public class CuponController {
         return cuponService.listarCupones();
     }
 
+    @GetMapping("/activos")
+    public List<Cupon> obtenerCuponesActivos() {
+        return cuponService.obtenerCuponesActivos();
+    }
+
     @PostMapping
     public Cupon crearCupon(@RequestBody Cupon cupon) {
         return cuponService.crearCupon(cupon);

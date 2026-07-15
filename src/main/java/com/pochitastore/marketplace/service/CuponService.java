@@ -18,6 +18,12 @@ public class CuponService {
         return cuponRepository.findAll();
     }
 
+    public List<Cupon> obtenerCuponesActivos() {
+        return cuponRepository.findByActivoTrue().stream()
+                .filter(c -> c.getFechaExpiracion() == null || c.getFechaExpiracion().isAfter(LocalDateTime.now()))
+                .toList();
+    }
+
     public Cupon crearCupon(Cupon cupon) {
         cupon.setCodigo(cupon.getCodigo().toUpperCase()); // Siempre en mayúsculas
         cupon.setCreatedAt(LocalDateTime.now());

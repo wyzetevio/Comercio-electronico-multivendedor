@@ -35,6 +35,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/productos/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/categorias/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/tiendas/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/cupones/activos").permitAll()
                         // Convertirse en vendedor (cualquier usuario autenticado)
                         .requestMatchers(HttpMethod.POST, "/api/usuarios/*/vendedor").authenticated()
                         // Gestión de usuarios — solo ADMIN
@@ -59,8 +60,8 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        // Permitir peticiones desde tu frontend en desarrollo
-        configuration.setAllowedOrigins(List.of("http://localhost:5173"));
+        // Permitir peticiones desde tu frontend en desarrollo y producción
+        configuration.setAllowedOriginPatterns(List.of("http://localhost:5173", "https://*.vercel.app"));
         // Permitir métodos HTTP estándar
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         // Permitir cabeceras estándar de autenticación y envío de JSON

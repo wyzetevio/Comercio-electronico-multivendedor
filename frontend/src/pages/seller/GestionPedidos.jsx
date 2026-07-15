@@ -32,7 +32,8 @@ function GestionPedidos() {
       if (!tienda) return;
       try {
         const data = await obtenerSubordenesTienda(tienda.idTienda);
-        setOrdenes(data);
+        const ordenesOrdenadas = data.sort((a, b) => b.idSuborden - a.idSuborden);
+        setOrdenes(ordenesOrdenadas);
       } catch {
         setError("Error al cargar la lista de pedidos.");
       } finally {
@@ -45,10 +46,10 @@ function GestionPedidos() {
 
   const procesarEnvio = async (idSuborden) => {
     try {
-      await actualizarEstadoSuborden(idSuborden, "EN_TRANSITO");
+      await actualizarEstadoSuborden(idSuborden, "ENVIADA");
       setOrdenes(prev =>
         prev.map(ord =>
-          ord.idSuborden === idSuborden ? { ...ord, estado: "EN_TRANSITO" } : ord
+          ord.idSuborden === idSuborden ? { ...ord, estado: "ENVIADA" } : ord
         )
       );
     } catch (e) {
@@ -127,17 +128,17 @@ function GestionPedidos() {
                       {formatearPrecio(orden.totalVendedor)}
                     </td>
                     <td className="px-6 py-4 text-right">
-                      {orden.estado === "PENDIENTE" || orden.estado === "PAGADA" ? (
+                      {['PENDIENTE', 'PAGADA', 'EN_PREPARACION'].includes(orden.estado) ? (
                         <Boton
-                          className="bg-amber-500 hover:bg-amber-600 shadow-amber-500/20 text-xs py-2 px-4"
+                          className="bg-violet-600 hover:bg-violet-700 shadow-violet-500/20 text-xs py-2 px-4"
                           onClick={() => procesarEnvio(orden.idSuborden)}
                         >
                           <Truck className="h-3 w-3 mr-1.5 inline" />
-                          Despachar
+                          Marcar Enviado
                         </Boton>
-                      ) : orden.estado === "EN_TRANSITO" ? (
+                      ) : ['ENVIADA', 'EN_TRANSITO'].includes(orden.estado) ? (
                         <Boton
-                          className="bg-blue-500 hover:bg-blue-600 shadow-blue-500/20 text-xs py-2 px-4"
+                          className="bg-green-500 hover:bg-green-600 shadow-green-500/20 text-xs py-2 px-4"
                           onClick={() => entregarPedido(orden.idSuborden)}
                         >
                           <CheckCircle className="h-3 w-3 mr-1.5 inline" />

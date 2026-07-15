@@ -6,4 +6,5 @@ import java.util.Optional;
 
 public interface CuponRepository extends JpaRepository<Cupon, Long> {
     Optional<Cupon> findByCodigo(String codigo);
+    java.util.List<Cupon> findByActivoTrue();
 }

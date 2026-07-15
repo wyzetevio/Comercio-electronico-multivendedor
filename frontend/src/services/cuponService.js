@@ -5,6 +5,11 @@ export const obtenerCupones = async () => {
     return data;
 };
 
+export const obtenerCuponesActivos = async () => {
+    const { data } = await api.get("/cupones/activos");
+    return data;
+};
+
 export const crearCupon = async (cupon) => {
     const { data } = await api.post("/cupones", cupon);
     return data;

@@ -8,23 +8,27 @@ import {
     eliminarItemCarrito,
     vaciarCarrito
 } from "../services/carritoService";
+import { validarCupon } from "../services/cuponService";
 
 // Crear el contexto del carrito
 export const CartContext = createContext();
 
 export const CartProvider = ({ children }) => {
     const { user } = useAuth(); // Obtenemos el usuario autenticado (con su token y idUsuario)
-    
+
     // Estado del carrito del backend (objeto Carrito completo con sus items)
-    const [cart, setCart] = useState(null); 
-    
+    const [cart, setCart] = useState(null);
+
     // Estado temporal local (para usuarios visitantes no logueados)
     const [localCartItems, setLocalCartItems] = useState(() => {
         const stored = localStorage.getItem('pochita_cart');
         return stored ? JSON.parse(stored) : [];
     });
-    
+
     const [loading, setLoading] = useState(false);
+
+    // Estado del cupón aplicado localmente
+    const [cuponAplicado, setCuponAplicado] = useState(null);
 
     // Cargar el carrito del servidor (memorizado para evitar re-renders y advertencias del hook)
     const fetchCartFromServer = useCallback(async () => {
@@ -43,9 +47,40 @@ export const CartProvider = ({ children }) => {
     // 1. EFECTO: Sincronizar/Cargar carrito cuando cambia el estado de autenticación
     useEffect(() => {
         if (user && user.idUsuario) {
-            // Se usa setTimeout para diferir la llamada asíncrona fuera del ciclo de renderizado síncrono del effect
+            const syncCart = async () => {
+                setLoading(true);
+                try {
+                    // Leer items del carrito local
+                    const stored = localStorage.getItem('pochita_cart');
+                    const itemsToSync = stored ? JSON.parse(stored) : [];
+
+                    if (itemsToSync.length > 0) {
+                        // Guardar en el servidor cada item local
+                        for (const item of itemsToSync) {
+                            try {
+                                await agregarProductoAlCarrito(
+                                    user.idUsuario,
+                                    item.producto.idProducto,
+                                    item.cantidad
+                                );
+                            } catch (err) {
+                                console.error(`Error al sincronizar producto ${item.producto.idProducto}:`, err);
+                            }
+                        }
+                        // Limpiar localStorage y el estado local de invitado
+                        localStorage.removeItem('pochita_cart');
+                        setLocalCartItems([]);
+                    }
+                } catch (error) {
+                    console.error("Error al sincronizar el carrito temporal:", error);
+                } finally {
+                    await fetchCartFromServer();
+                    setLoading(false);
+                }
+            };
+
             const timer = setTimeout(() => {
-                fetchCartFromServer();
+                syncCart();
             }, 0);
             return () => clearTimeout(timer);
         } else {
@@ -71,13 +106,13 @@ export const CartProvider = ({ children }) => {
     // Agregar producto al carrito
     const addToCart = async (producto, cantidad = 1) => {
         if (user && user.idUsuario) {
-            
+
             try {
                 await agregarProductoAlCarrito(
-                        user.idUsuario,
-                        producto.idProducto,
-                        cantidad
-                     );
+                    user.idUsuario,
+                    producto.idProducto,
+                    cantidad
+                );
                 await fetchCartFromServer();
             } catch (error) {
                 console.error("Error al agregar producto en el servidor:", error);
@@ -131,8 +166,8 @@ export const CartProvider = ({ children }) => {
         if (user && user.idUsuario) {
 
             try {
-                 await eliminarItemCarrito(id);
-                 await fetchCartFromServer();
+                await eliminarItemCarrito(id);
+                await fetchCartFromServer();
             } catch (error) {
                 console.error("Error al eliminar item en el servidor:", error);
             }
@@ -158,6 +193,7 @@ export const CartProvider = ({ children }) => {
             // Lógica Local (Invitado)
             setLocalCartItems([]);
         }
+        setCuponAplicado(null);
     };
 
     // Helper: Contar total de artículos agregados
@@ -171,18 +207,42 @@ export const CartProvider = ({ children }) => {
         const itemsList = user ? (cart?.items || []) : localCartItems;
         return itemsList.reduce((acc, item) => acc + (item.precioUnitario * item.cantidad), 0);
     };
+    // ==========================================
+    // MANEJO DE CUPONES
+    // ==========================================
+    const aplicarCuponCodigo = async (codigo) => {
+        try {
+            const data = await validarCupon(codigo);
+            if (data && data.activo) {
+                setCuponAplicado(data);
+                return { success: true, message: "¡Cupón aplicado con éxito!" };
+            }
+            return { success: false, message: "Cupón inactivo" };
+        } catch (error) {
+            console.error("Error validando cupón:", error);
+            // El backend probablemente devuelve 404 o similar
+            return { success: false, message: "Código de cupón inválido o expirado" };
+        }
+    };
+
+    const removerCupon = () => {
+        setCuponAplicado(null);
+    };
 
     return (
         <CartContext.Provider value={{
             items: user ? (cart?.items || []) : localCartItems,
             loading,
+            cuponAplicado,
             addToCart,
             updateQuantity,
             removeItem,
             clearCart,
             getCartCount,
             getCartTotal,
-            fetchCartFromServer
+            fetchCartFromServer,
+            aplicarCuponCodigo,
+            removerCupon
         }}>
             {children}
         </CartContext.Provider>

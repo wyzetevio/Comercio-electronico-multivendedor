@@ -7,13 +7,11 @@ import api from "../utils/api";
  * @param {Array<number>} idsSubordenes Lista de IDs de las subórdenes.
  * @returns {Promise<Object>} Liquidación creada.
  */
-export const crearLiquidacion = async (idVendedor, idsSubordenes) => {
-  const { data } = await api.post("/liquidaciones", idsSubordenes, {
-    params: {
-      idVendedor,
-    },
-  });
-
+/**
+ * Crea una solicitud de liquidación automática para la tienda
+ */
+export const crearLiquidacion = async (idTienda) => {
+  const { data } = await api.post(`/liquidaciones/tienda/${idTienda}`);
   return data;
 };
 

@@ -65,4 +65,9 @@ public class PagoController {
 
         return pagoService.obtenerPagosOrden(idOrden);
     }
+
+    @GetMapping("/todos")
+    public List<Pago> obtenerTodosLosPagos() {
+        return pagoService.obtenerTodosLosPagos();
+    }
 }

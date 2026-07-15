@@ -15,6 +15,8 @@ public interface ProductoRepository
             Long idTienda
     );
 
+    List<Producto> findByTiendaIdTienda(Long idTienda);
+
     List<Producto> findByCategoriaIdCategoriaAndEstadoTrue(
             Long idCategoria
     );

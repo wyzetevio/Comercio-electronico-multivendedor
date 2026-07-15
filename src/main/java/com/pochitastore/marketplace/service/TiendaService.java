@@ -17,6 +17,9 @@ public class TiendaService {
     private final TiendaRepository tiendaRepository;
     private final VendedorRepository vendedorRepository;
 
+    @jakarta.persistence.PersistenceContext
+    private jakarta.persistence.EntityManager entityManager;
+
     public List<Tienda> listar() {
         return tiendaRepository.findAll();
     }
@@ -25,9 +28,16 @@ public class TiendaService {
         return tiendaRepository.findById(id).orElse(null);
     }
 
-    public Tienda guardar(Long idVendedor, Tienda tienda) {
-        Vendedor vendedor = vendedorRepository.findById(idVendedor)
-                .orElseThrow(() -> new RuntimeException("Vendedor no encontrado"));
+    @org.springframework.transaction.annotation.Transactional
+    public Tienda guardar(Long idUsuario, Tienda tienda) {
+        try {
+            entityManager.createNativeQuery("ALTER TABLE tienda ALTER COLUMN descripcion TYPE TEXT").executeUpdate();
+            entityManager.createNativeQuery("ALTER TABLE tienda ALTER COLUMN logo TYPE TEXT").executeUpdate();
+        } catch (Exception e) {
+            // Ignorar
+        }
+        Vendedor vendedor = vendedorRepository.findByUsuario_IdUsuario(idUsuario)
+                .orElseThrow(() -> new RuntimeException("Vendedor no encontrado para este usuario"));
         tienda.setVendedor(vendedor);
         tienda.setActivo(true);
         tienda.setCreatedAt(LocalDateTime.now());
@@ -35,7 +45,14 @@ public class TiendaService {
         return tiendaRepository.save(tienda);
     }
 
+    @org.springframework.transaction.annotation.Transactional
     public Tienda actualizar(Long id, Tienda tienda) {
+        try {
+            entityManager.createNativeQuery("ALTER TABLE tienda ALTER COLUMN descripcion TYPE TEXT").executeUpdate();
+            entityManager.createNativeQuery("ALTER TABLE tienda ALTER COLUMN logo TYPE TEXT").executeUpdate();
+        } catch (Exception e) {
+            // Ignorar si ya es TEXT o si falla en base de datos H2/otra
+        }
 
         Tienda existente = tiendaRepository.findById(id).orElse(null);
 

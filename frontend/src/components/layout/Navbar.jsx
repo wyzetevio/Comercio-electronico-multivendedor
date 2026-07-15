@@ -52,16 +52,42 @@ function Navbar() {
 
       </div>
 
-      {/* Contenido menú móvil */}
+      {/* Contenido menú móvil (Sidebar) */}
+      {/* Overlay oscuro */}
       {menuOpen && (
-        <div className="border-t bg-white px-6 py-4 md:hidden">
-          <div className="space-y-4">
-            <NavbarSearch mobile />
-            <NavbarLinks mobile />
-            <NavbarUserMenu mobile />
+        <div 
+          className="fixed inset-0 z-40 bg-black/50 md:hidden" 
+          onClick={() => setMenuOpen(false)}
+        />
+      )}
+      
+      {/* Drawer */}
+      <div 
+        className={`fixed top-0 right-0 z-50 h-full w-72 bg-white shadow-2xl transform transition-transform duration-300 ease-in-out md:hidden flex flex-col ${
+          menuOpen ? "translate-x-0" : "translate-x-full"
+        }`}
+      >
+        {/* Cabecera del Sidebar Móvil */}
+        <div className="flex items-center justify-between p-6 border-b border-gray-100">
+          <span className="text-xl font-bold text-slate-800">Menú</span>
+          <Boton variant="ghost" onClick={() => setMenuOpen(false)}>
+            <X size={24} />
+          </Boton>
+        </div>
+
+        {/* Links y opciones apiladas */}
+        <div className="flex-1 overflow-y-auto p-6 space-y-6">
+          <NavbarSearch />
+          
+          <div className="flex flex-col gap-4 text-lg">
+            <NavbarLinks />
+          </div>
+
+          <div className="pt-4 border-t border-gray-100">
+            <NavbarUserMenu />
           </div>
         </div>
-      )}
+      </div>
     </header>
   );
 }

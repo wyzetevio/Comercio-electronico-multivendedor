@@ -12,178 +12,94 @@ import java.util.List;
 @RequiredArgsConstructor
 public class LiquidacionService {
 
-    private final LiquidacionRepository liquidacionRepository;
+        private final LiquidacionRepository liquidacionRepository;
 
-    private final DetalleLiquidacionRepository
-            detalleLiquidacionRepository;
+        private final DetalleLiquidacionRepository detalleLiquidacionRepository;
 
-    private final SubordenRepository subordenRepository;
+        private final SubordenRepository subordenRepository;
 
-    private final VendedorRepository vendedorRepository;
+        private final VendedorRepository vendedorRepository;
+        private final TiendaRepository tiendaRepository;
 
+        public Liquidacion crearLiquidacion(Long idTienda) {
+                // 1. Obtener Tienda y Vendedor
+                Tienda tienda = tiendaRepository.findById(idTienda)
+                                .orElseThrow(() -> new RuntimeException("Tienda no encontrada"));
+                Vendedor vendedor = tienda.getVendedor();
 
-    public Liquidacion crearLiquidacion(
-            Long idVendedor,
-            List<Long> idsSubordenes
-    ) {
+                // 2. Buscar ventas entregadas sin liquidar automáticamente
+                List<Suborden> subordenesPendientes = subordenRepository
+                                .findSubordenesPendientesDeLiquidacion(idTienda);
 
-        // OBTENER VENDEDOR
+                if (subordenesPendientes.isEmpty()) {
+                        throw new RuntimeException("No tienes ventas entregadas pendientes por liquidar.");
+                }
 
-        Vendedor vendedor =
-                vendedorRepository.findById(idVendedor)
-                        .orElseThrow(() ->
-                                new RuntimeException(
-                                        "Vendedor no encontrado"
-                                )
-                        );
+                // 3. Crear Liquidación
+                Liquidacion liquidacion = new Liquidacion();
+                liquidacion.setVendedor(vendedor);
+                liquidacion.setMontoTotal(0.0);
+                liquidacion.setEstadoPago("PENDIENTE");
+                liquidacion.setCreatedAt(LocalDateTime.now());
+                Liquidacion liquidacionGuardada = liquidacionRepository.save(liquidacion);
 
-        // CREAR LIQUIDACIÓN
+                double totalGeneral = 0;
 
-        Liquidacion liquidacion =
-                new Liquidacion();
+                // 4. Crear los Detalles
+                for (Suborden suborden : subordenesPendientes) {
+                        DetalleLiquidacion detalle = new DetalleLiquidacion();
+                        detalle.setLiquidacion(liquidacionGuardada);
+                        detalle.setSuborden(suborden);
+                        detalle.setMontoBruto(suborden.getSubtotal());
+                        detalle.setComision(suborden.getComision());
+                        detalle.setMontoNeto(suborden.getTotalVendedor());
 
-        liquidacion.setVendedor(vendedor);
+                        detalleLiquidacionRepository.save(detalle);
+                        totalGeneral += suborden.getTotalVendedor();
+                }
 
-        liquidacion.setMontoTotal(0.0);
-
-        liquidacion.setEstadoPago("PENDIENTE");
-
-        liquidacion.setCreatedAt(
-                LocalDateTime.now()
-        );
-
-        Liquidacion liquidacionGuardada =
-                liquidacionRepository.save(liquidacion);
-
-        // TOTAL GENERAL
-
-        double totalGeneral = 0;
-
-        // RECORRER SUBORDENES
-
-
-        for (Long idSuborden : idsSubordenes) {
-
-            Suborden suborden =
-                    subordenRepository.findById(idSuborden)
-                            .orElseThrow(() ->
-                                    new RuntimeException(
-                                            "Suborden no encontrada"
-                                    )
-                            );
-
-            // validar vendedor
-
-            if (!suborden.getTienda()
-                    .getVendedor()
-                    .getIdVendedor()
-                    .equals(idVendedor)) {
-
-                throw new RuntimeException(
-                        "La suborden no pertenece al vendedor"
-                );
-            }
-
-            // validar entregada
-
-            if (!suborden.getEstado()
-                    .equals("ENTREGADA")) {
-
-                throw new RuntimeException(
-                        "La suborden aún no fue entregada"
-                );
-            }
-
-            // CREAR DETALLE
-
-            DetalleLiquidacion detalle =
-                    new DetalleLiquidacion();
-
-            detalle.setLiquidacion(
-                    liquidacionGuardada
-            );
-
-            detalle.setSuborden(suborden);
-
-            detalle.setMontoBruto(
-                    suborden.getSubtotal()
-            );
-
-            detalle.setComision(
-                    suborden.getComision()
-            );
-
-            detalle.setMontoNeto(
-                    suborden.getTotalVendedor()
-            );
-
-            detalleLiquidacionRepository
-                    .save(detalle);
-
-            totalGeneral +=
-                    suborden.getTotalVendedor();
+                // 5. Actualizar monto final
+                liquidacionGuardada.setMontoTotal(totalGeneral);
+                return liquidacionRepository.save(liquidacionGuardada);
         }
 
-        // ACTUALIZAR TOTAL
+        public Liquidacion obtenerLiquidacion(
+                        Long idLiquidacion) {
 
-        liquidacionGuardada.setMontoTotal(
-                totalGeneral
-        );
+                return liquidacionRepository.findById(idLiquidacion)
+                                .orElseThrow(() -> new RuntimeException(
+                                                "Liquidación no encontrada"));
+        }
 
-        return liquidacionRepository
-                .save(liquidacionGuardada);
-    }
+        public List<Liquidacion> obtenerLiquidacionesVendedor(
+                        Long idVendedor) {
 
-    public Liquidacion obtenerLiquidacion(
-            Long idLiquidacion
-    ) {
+                return liquidacionRepository
+                                .findByVendedorIdVendedor(idVendedor);
+        }
 
-        return liquidacionRepository.findById(idLiquidacion)
-                .orElseThrow(() ->
-                        new RuntimeException(
-                                "Liquidación no encontrada"
-                        )
-                );
-    }
+        public Liquidacion marcarPagada(
+                        Long idLiquidacion) {
 
-    public List<Liquidacion>
-    obtenerLiquidacionesVendedor(
-            Long idVendedor
-    ) {
+                Liquidacion liquidacion = obtenerLiquidacion(idLiquidacion);
 
-        return liquidacionRepository
-                .findByVendedorIdVendedor(idVendedor);
-    }
+                liquidacion.setEstadoPago("PAGADA");
 
+                liquidacion.setFechaPago(
+                                LocalDateTime.now());
 
-    public Liquidacion marcarPagada(
-            Long idLiquidacion
-    ) {
+                return liquidacionRepository
+                                .save(liquidacion);
+        }
 
-        Liquidacion liquidacion =
-                obtenerLiquidacion(idLiquidacion);
+        public Liquidacion rechazarLiquidacion(
+                        Long idLiquidacion) {
 
-        liquidacion.setEstadoPago("PAGADO");
+                Liquidacion liquidacion = obtenerLiquidacion(idLiquidacion);
 
-        liquidacion.setFechaPago(
-                LocalDateTime.now()
-        );
+                liquidacion.setEstadoPago("RECHAZADA");
 
-        return liquidacionRepository
-                .save(liquidacion);
-    }
-
-
-    public Liquidacion rechazarLiquidacion(
-            Long idLiquidacion
-    ) {
-
-        Liquidacion liquidacion =
-                obtenerLiquidacion(idLiquidacion);
-
-        liquidacion.setEstadoPago("RECHAZADO");
-
-        return liquidacionRepository
-                .save(liquidacion);
-    }
+                return liquidacionRepository
+                                .save(liquidacion);
+        }
 }

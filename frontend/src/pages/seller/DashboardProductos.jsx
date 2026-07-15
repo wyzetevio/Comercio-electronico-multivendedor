@@ -47,6 +47,7 @@ function DashboardProductos() {
   const [form, setForm] = useState({
     nombre: "",
     descripcion: "",
+    marca: "",
     precio: "",
     stock: "",
     idCategoria: "",
@@ -57,6 +58,7 @@ function DashboardProductos() {
     setForm({
       nombre: "",
       descripcion: "",
+      marca: "",
       precio: "",
       stock: "",
       idCategoria: "",
@@ -75,6 +77,7 @@ function DashboardProductos() {
     setForm({
       nombre: producto.nombre || "",
       descripcion: producto.descripcion || "",
+      marca: producto.marca || "",
       precio: producto.precio?.toString() || "",
       stock: producto.stock?.toString() || "",
       idCategoria: producto.categoria?.idCategoria?.toString() || "",
@@ -91,7 +94,7 @@ function DashboardProductos() {
     }
     try {
       const [productosData, categoriasData] = await Promise.all([
-        obtenerProductosTienda(tienda.idTienda),
+        obtenerProductosTienda(tienda.idTienda, true),
         obtenerCategorias(),
       ]);
       setProductos(productosData);
@@ -144,13 +147,13 @@ function DashboardProductos() {
       const payload = {
         nombre: form.nombre,
         descripcion: form.descripcion,
+        marca: form.marca,
         precio: Number(form.precio),
         stock: Number(form.stock),
         imagenPrincipal: form.imagenPrincipal || undefined,
       };
-
       if (editando) {
-        await actualizarProducto(editando.idProducto, payload);
+        await actualizarProducto(editando.idProducto, form.idCategoria, payload);
       } else {
         await crearProducto(
           tienda.idTienda,
@@ -219,7 +222,7 @@ function DashboardProductos() {
         </div>
       ) : (
         <div className="overflow-hidden rounded-xl bg-white shadow-sm">
-          <table className="w-full text-left text-sm">
+          <table className="w-full text-left text-sm whitespace-nowrap">
             <thead className="bg-gray-50 text-gray-600">
               <tr>
                 <th className="px-6 py-3 font-medium">Producto</th>
@@ -333,6 +336,17 @@ function DashboardProductos() {
               value={form.nombre}
               onChange={handleChange("nombre")}
               placeholder="Nombre del producto"
+            />
+          </div>
+          {/* AÑADE ESTE NUEVO BLOQUE COMPLETO AQUÍ: */}
+          <div>
+            <label className="mb-1 block text-sm font-medium text-gray-700">
+              Marca del producto
+            </label>
+            <Input
+              value={form.marca}
+              onChange={handleChange("marca")}
+              placeholder="Ej. Apple, Samsung, HP (opcional)"
             />
           </div>
           <div>

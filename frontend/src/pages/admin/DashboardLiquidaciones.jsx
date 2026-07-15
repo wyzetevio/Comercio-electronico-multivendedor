@@ -21,7 +21,9 @@ import {
 const estadoBadge = {
   PENDIENTE: "warning",
   PAGADA: "success",
+  PAGADO: "success",
   RECHAZADA: "danger",
+  RECHAZADO: "danger",
 };
 
 function DashboardLiquidaciones() {
@@ -90,15 +92,16 @@ function DashboardLiquidaciones() {
   if (loading) return <Spinner size="h-12 w-12" />;
 
   const pendientes = liquidaciones.filter(
-    (l) => l.estado === "PENDIENTE",
+    (l) => l.estadoPago === "PENDIENTE",
   );
   const pagadas = liquidaciones.filter(
-    (l) => l.estado === "PAGADA",
+    (l) => l.estadoPago === "PAGADA" || l.estadoPago === "PAGADO",
   );
   const totalPendiente = pendientes.reduce(
-    (sum, l) => sum + (l.monto || 0),
+    (sum, l) => sum + (l.montoTotal || 0),
     0,
   );
+
 
   return (
     <div className="space-y-6">
@@ -161,7 +164,7 @@ function DashboardLiquidaciones() {
             No hay liquidaciones registradas.
           </div>
         ) : (
-          <table className="w-full text-left text-sm">
+          <table className="w-full text-left text-sm whitespace-nowrap">
             <thead className="bg-gray-50 text-gray-600">
               <tr>
                 <th className="px-6 py-3 font-medium">ID</th>
@@ -186,53 +189,55 @@ function DashboardLiquidaciones() {
                     {l.tiendaNombre}
                   </td>
                   <td className="px-6 py-4 font-semibold text-violet-600">
-                    {formatearPrecio(l.monto)}
+                    {formatearPrecio(l.montoTotal)}
                   </td>
                   <td className="px-6 py-4 text-gray-500">
-                    {formatearFecha(l.fechaCreacion)}
+                    {formatearFecha(l.createdAt)}
                   </td>
                   <td className="px-6 py-4">
-                    <Badge variant={estadoBadge[l.estado] || "gray"}>
-                      {formatearEstado(l.estado)}
+                    <Badge variant={estadoBadge[l.estadoPago] || "gray"}>
+                      {formatearEstado(l.estadoPago)}
                     </Badge>
                   </td>
                   <td className="px-6 py-4">
-                    {l.estado === "PENDIENTE" && (
-                      <div className="flex gap-2">
-                        <Boton
-                          variant="primary"
-                          size="sm"
-                          onClick={() =>
-                            setConfirmModal({
-                              open: true,
-                              title: "Marcar como pagada",
-                              message: `¿Confirmar pago de ${formatearPrecio(l.monto)} a ${l.vendedorNombre}?`,
-                              onConfirm: () =>
-                                handleAction(l.idLiquidacion, "pagar"),
-                            })
-                          }
-                        >
-                          <CheckCircle size={14} className="mr-1" />
-                          Pagar
-                        </Boton>
-                        <Boton
-                          variant="danger"
-                          size="sm"
-                          onClick={() =>
-                            setConfirmModal({
-                              open: true,
-                              title: "Rechazar liquidación",
-                              message: `¿Rechazar la liquidación de ${formatearPrecio(l.monto)} a ${l.vendedorNombre}?`,
-                              onConfirm: () =>
-                                handleAction(l.idLiquidacion, "rechazar"),
-                            })
-                          }
-                        >
-                          <XCircle size={14} className="mr-1" />
-                          Rechazar
-                        </Boton>
-                      </div>
-                    )}
+                    {l.estadoPago === "PENDIENTE" &&
+
+                      (
+                        <div className="flex gap-2">
+                          <Boton
+                            variant="primary"
+                            size="sm"
+                            onClick={() =>
+                              setConfirmModal({
+                                open: true,
+                                title: "Marcar como pagada",
+                                message: `¿Confirmar pago de ${formatearPrecio(l.montoTotal)} a ${l.vendedorNombre}?`,
+                                onConfirm: () =>
+                                  handleAction(l.idLiquidacion, "pagar"),
+                              })
+                            }
+                          >
+                            <CheckCircle size={14} className="mr-1" />
+                            Pagar
+                          </Boton>
+                          <Boton
+                            variant="danger"
+                            size="sm"
+                            onClick={() =>
+                              setConfirmModal({
+                                open: true,
+                                title: "Rechazar liquidación",
+                                message: `¿Confirmar pago de ${formatearPrecio(l.montoTotal)} a ${l.vendedorNombre}?`,
+                                onConfirm: () =>
+                                  handleAction(l.idLiquidacion, "rechazar"),
+                              })
+                            }
+                          >
+                            <XCircle size={14} className="mr-1" />
+                            Rechazar
+                          </Boton>
+                        </div>
+                      )}
                   </td>
                 </tr>
               ))}

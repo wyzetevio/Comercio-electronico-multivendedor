@@ -25,13 +25,14 @@ function ProductoCard({ producto }) {
   const stock = stockConfig[producto.stockStatus];
 
   return (
-    <div className="group overflow-hidden rounded-xl border bg-white shadow-sm transition hover:shadow-md">
+    <div className="group overflow-hidden rounded-xl border bg-white shadow-sm transition-all duration-300 hover:-translate-y-1.5 hover:shadow-lg">
 
       {/* Imagen */}
       <div className="relative h-48 w-full overflow-hidden bg-gray-100">
         <img
-          src={producto.imagenPrincipal || "/placeholder.png"}
+          src={producto.imagenPrincipal || "https://placehold.co/600x400/e2e8f0/64748b?text=Sin+Imagen"}
           alt={producto.nombre}
+          onError={(e) => { e.target.onerror = null; e.target.src = "https://placehold.co/600x400/e2e8f0/64748b?text=Sin+Imagen"; }}
           className="h-full w-full object-cover transition group-hover:scale-105"
         />
 

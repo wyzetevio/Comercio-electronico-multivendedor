@@ -19,8 +19,10 @@ export const obtenerProducto = async (idProducto) => {
 /**
  * Obtener productos de una tienda
  */
-export const obtenerProductosTienda = async (idTienda) => {
-  const response = await api.get(`/productos/tienda/${idTienda}`);
+export const obtenerProductosTienda = async (idTienda, todos = false) => {
+  const response = await api.get(`/productos/tienda/${idTienda}`, {
+    params: { todos },
+  });
   return response.data;
 };
 
@@ -79,8 +81,12 @@ export const crearProducto = async (idTienda, idCategoria, producto) => {
 /**
  * Actualizar producto
  */
-export const actualizarProducto = async (idProducto, producto) => {
-  const response = await api.put(`/productos/${idProducto}`, producto);
+export const actualizarProducto = async (idProducto, idCategoria, producto) => {
+  const response = await api.put(`/productos/${idProducto}`, producto, {
+    params: {
+      idCategoria: idCategoria || undefined,
+    },
+  });
 
   return response.data;
 };

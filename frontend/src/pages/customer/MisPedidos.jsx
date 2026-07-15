@@ -82,15 +82,15 @@ function MisPedidos() {
                         Orden #{orden.idOrden}
                       </p>
                       <p className="text-xs text-gray-400">
-                        {formatearFechaHora(orden.fechaCreacion)}
+                        {formatearFechaHora(orden.createdAt)}
                       </p>
                     </div>
                     <Badge
                       variant={
-                        estadoBadge[orden.estado] || "gray"
+                        estadoBadge[orden.estadoGeneral] || "gray"
                       }
                     >
-                      {formatearEstado(orden.estado)}
+                      {formatearEstado(orden.estadoGeneral)}
                     </Badge>
                   </div>
 

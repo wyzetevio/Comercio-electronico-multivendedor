@@ -27,6 +27,14 @@ public class OrdenService {
         return ordenRepository.findByUsuarioIdUsuario(idUsuario);
     }
 
+    // Función exclusiva para el Administrador: Obtener TODAS las órdenes del sistema
+    public List<Orden> obtenerTodasLasOrdenes() {
+        return ordenRepository.findAll(
+                org.springframework.data.domain.Sort.by(
+                        org.springframework.data.domain.Sort.Direction.DESC, "createdAt"
+                )
+        );
+    }
     public Orden obtenerOrdenPorId(Long idOrden) {
         return ordenRepository.findById(idOrden)
                 .orElseThrow(() -> new RuntimeException("Orden no encontrada"));
@@ -76,6 +84,29 @@ public class OrdenService {
         return subordenRepository.findByOrdenIdOrden(idOrden);
     }
 
+    public List<Suborden> obtenerSubordenesPorTienda(Long idTienda) {
+        return subordenRepository.findByTiendaIdTienda(idTienda);
+    }
+
+    public List<DetalleSuborden> obtenerDetallesDeOrden(Long idOrden) {
+        List<Suborden> subordenes = obtenerSubordenes(idOrden);
+        List<DetalleSuborden> todosLosDetalles = new java.util.ArrayList<>();
+        for (Suborden suborden : subordenes) {
+            todosLosDetalles.addAll(detalleSubordenRepository.findBySubordenIdSuborden(suborden.getIdSuborden()));
+        }
+        return todosLosDetalles;
+    }
+
+    public Suborden actualizarEstadoSuborden(Long idSuborden, String estado) {
+        Suborden suborden = subordenRepository.findById(idSuborden)
+                .orElseThrow(() -> new RuntimeException("Suborden no encontrada"));
+        
+        suborden.setEstado(estado);
+        suborden.setUpdatedAt(LocalDateTime.now());
+        
+        return subordenRepository.save(suborden);
+    }
+
     public Orden crearOrdenDesdeCarrito(
             Long usuarioId,
             Long direccionId
@@ -96,12 +127,8 @@ public class OrdenService {
         }
 
         // OBTENER DIRECCIÓN
-
-        Direccion direccion = direccionRepository
-                .findById(direccionId)
-                .orElseThrow(() ->
-                        new RuntimeException("Dirección no encontrada")
-                );
+        Direccion direccion = direccionRepository.findById(direccionId)
+                .orElseThrow(() -> new RuntimeException("Dirección no encontrada"));
 
         // CALCULAR TOTAL
 

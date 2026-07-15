@@ -55,3 +55,11 @@ export const convertirEnVendedor = async (idUsuario) => {
   const { data } = await api.post(`/usuarios/${idUsuario}/vendedor`);
   return data;
 };
+export const obtenerClientes = async () => {
+  const { data } = await api.get("/usuarios/clientes");
+  return data;
+};
+export const cambiarEstadoCuenta = async (idUsuario) => {
+  const { data } = await api.put(`/usuarios/${idUsuario}/toggle-estado`);
+  return data;
+};

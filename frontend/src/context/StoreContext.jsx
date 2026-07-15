@@ -22,21 +22,21 @@ export const StoreProvider = ({ children }) => {
         try {
 
             const tiendasList = await listarTiendas();
-                
-                // Mapeo inteligente de tu backend: Filtramos para encontrar la tienda que 
-                // pertenece al idUsuario del vendedor logueado
-                const miTienda = tiendasList.find(
-                    t => t.vendedor && 
-                         t.vendedor.usuario && 
-                         t.vendedor.usuario.idUsuario === Number(user.idUsuario)
-                );
 
-                if (miTienda) {
-                    setTienda(miTienda);
-                } else {
-                    setTienda(null); // Aún no ha creado su tienda (debe ir a CrearTienda.jsx)
-                }
-           
+            // Mapeo inteligente de tu backend: Filtramos para encontrar la tienda que 
+            // pertenece al idUsuario del vendedor logueado
+            const miTienda = tiendasList.find(
+                t => t.vendedor &&
+                    t.vendedor.usuario &&
+                    t.vendedor.usuario.idUsuario === Number(user.idUsuario)
+            );
+
+            if (miTienda) {
+                setTienda(miTienda);
+            } else {
+                setTienda(null); // Aún no ha creado su tienda (debe ir a CrearTienda.jsx)
+            }
+
         } catch (error) {
             console.error("Error al cargar la tienda del vendedor:", error);
             setTienda(null);

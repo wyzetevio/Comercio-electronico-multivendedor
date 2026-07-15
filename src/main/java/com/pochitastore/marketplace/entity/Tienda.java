@@ -28,10 +28,12 @@ public class Tienda {
     @Column(name = "nombre_tienda", nullable = false, length = 150)
     private String nombreTienda;
 
+    @Column(columnDefinition = "TEXT")
     private String descripcion;
 
     private String direccion;
 
+    @Column(columnDefinition = "TEXT")
     private String logo;
 
     private Boolean activo;

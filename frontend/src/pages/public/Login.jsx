@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 import { LogIn } from "lucide-react";
 
 import Boton from "../../components/ui/Boton";
@@ -10,12 +10,28 @@ import { login as loginService } from "../../services/authService";
 
 function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { login } = useAuth();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const from = location.state?.from || "/";
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Easter Egg: Ctrl + Shift + A
+      if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "a") {
+        e.preventDefault();
+        navigate("/admin-secure/login");
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -29,16 +45,18 @@ function Login() {
     setLoading(true);
     try {
       const response = await loginService({ email, password });
-      const rol = login(response);
 
-      const rutas = {
-        CLIENTE: "/",
-        VENDEDOR: "/vendedor",
-        ADMIN: "/admin",
-      };
+      // Validamos estrictamente que sea un CLIENTE
+      if (response.rol !== "CLIENTE") {
+        setError("Acceso denegado. Exclusivo para clientes.");
+        setLoading(false);
+        return;
+      }
 
-      navigate(rutas[rol] || "/");
+      login(response);
+      navigate(from);
     } catch (err) {
+
       setError(
         err.response?.data?.message || "Credenciales incorrectas. Intente de nuevo.",
       );

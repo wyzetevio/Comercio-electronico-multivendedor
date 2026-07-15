@@ -11,56 +11,60 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class UsuarioController {
 
-    private final UsuarioService usuarioService;
+        private final UsuarioService usuarioService;
 
+        @PostMapping("/registro")
+        public Usuario registrarCliente(
+                        @RequestBody Usuario usuario) {
 
-    @PostMapping("/registro")
-    public Usuario registrarCliente(
-            @RequestBody Usuario usuario
-    ) {
+                return usuarioService
+                                .registrarCliente(usuario);
+        }
 
-        return usuarioService
-                .registrarCliente(usuario);
-    }
+        @GetMapping("/{idUsuario}")
+        public Usuario obtenerUsuario(
+                        @PathVariable Long idUsuario) {
 
-    @GetMapping("/{idUsuario}")
-    public Usuario obtenerUsuario(
-            @PathVariable Long idUsuario
-    ) {
+                return usuarioService
+                                .obtenerUsuario(idUsuario);
+        }
 
-        return usuarioService
-                .obtenerUsuario(idUsuario);
-    }
+        @PutMapping("/{idUsuario}")
+        public Usuario actualizarPerfil(
+                        @PathVariable Long idUsuario,
+                        @RequestBody Usuario usuario) {
 
+                return usuarioService
+                                .actualizarPerfil(
+                                                idUsuario,
+                                                usuario);
+        }
 
-    @PutMapping("/{idUsuario}")
-    public Usuario actualizarPerfil(
-            @PathVariable Long idUsuario,
-            @RequestBody Usuario usuario
-    ) {
+        @PutMapping("/{idUsuario}/desactivar")
+        public Usuario desactivarCuenta(
+                        @PathVariable Long idUsuario) {
 
-        return usuarioService
-                .actualizarPerfil(
-                        idUsuario,
-                        usuario
-                );
-    }
+                return usuarioService
+                                .desactivarCuenta(idUsuario);
+        }
 
-    @PutMapping("/{idUsuario}/desactivar")
-    public Usuario desactivarCuenta(
-            @PathVariable Long idUsuario
-    ) {
+        @PostMapping("/{idUsuario}/vendedor")
+        public Vendedor convertirEnVendedor(
+                        @PathVariable Long idUsuario) {
 
-        return usuarioService
-                .desactivarCuenta(idUsuario);
-    }
+                return usuarioService
+                                .convertirEnVendedor(idUsuario);
+        }
+        // 👇 AGREGA ESTOS ENDPOINTS AL FINAL DE LA CLASE 👇
 
-    @PostMapping("/{idUsuario}/vendedor")
-    public Vendedor convertirEnVendedor(
-            @PathVariable Long idUsuario
-    ) {
+        @GetMapping("/clientes")
+        public java.util.List<Usuario> listarClientes() {
+                return usuarioService.listarClientes();
+        }
 
-        return usuarioService
-                .convertirEnVendedor(idUsuario);
-    }
+        @PutMapping("/{idUsuario}/toggle-estado")
+        public Usuario cambiarEstadoCuenta(@PathVariable Long idUsuario) {
+                return usuarioService.cambiarEstadoCuenta(idUsuario);
+        }
+
 }

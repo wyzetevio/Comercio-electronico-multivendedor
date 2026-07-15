@@ -15,6 +15,10 @@ function NavbarLinks() {
         Inicio
       </NavLink>
 
+      <NavLink to="/catalogo" className={linkClass}>
+        Catálogo
+      </NavLink>
+
       {user?.rol === "VENDEDOR" && (
         <NavLink to="/vendedor" className={linkClass}>
           Mi Tienda

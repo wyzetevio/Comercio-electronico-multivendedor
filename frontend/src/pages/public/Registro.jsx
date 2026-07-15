@@ -67,7 +67,7 @@ function Registro() {
     } catch (err) {
       setError(
         err.response?.data?.message ||
-          "Error al registrar. Intente de nuevo.",
+        "Error al registrar. Intente de nuevo.",
       );
     } finally {
       setLoading(false);
@@ -151,7 +151,7 @@ function Registro() {
           </Boton>
         </form>
 
-        <div className="mt-6 space-y-2 text-center text-sm text-gray-500">
+        <div className="mt-6 text-center text-sm text-gray-500">
           <p>
             ¿Ya tienes cuenta?{" "}
             <Link
@@ -159,15 +159,6 @@ function Registro() {
               className="font-medium text-violet-600 hover:text-violet-700"
             >
               Inicia sesión
-            </Link>
-          </p>
-          <p>
-            ¿Quieres vender?{" "}
-            <Link
-              to="/register/vendedor"
-              className="font-medium text-violet-600 hover:text-violet-700"
-            >
-              Regístrate como vendedor
             </Link>
           </p>
         </div>

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { ShoppingBag, Truck, Shield } from "lucide-react";
 
 import ProductoGrid from "../../components/product/ProductoGrid";
@@ -10,11 +10,25 @@ import { obtenerProductos } from "../../services/productoService";
 import { obtenerCategorias } from "../../services/categoriaService";
 
 function Home() {
+  const [searchParams, setSearchParams] = useSearchParams();
+
   const [productos, setProductos] = useState([]);
   const [categorias, setCategorias] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [filtros, setFiltros] = useState({ search: "" });
+
+  const [filtros, setFiltros] = useState({
+    search: searchParams.get("search") || "",
+    categoria: searchParams.get("categoria") || ""
+  });
+
+  // Sincronizar URL a estado de filtros
+  useEffect(() => {
+    setFiltros({
+      search: searchParams.get("search") || "",
+      categoria: searchParams.get("categoria") || "",
+    });
+  }, [searchParams]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -36,83 +50,101 @@ function Home() {
   }, []);
 
   const productosFiltrados = productos.filter((p) => {
-    if (!filtros.search) return true;
-    const term = filtros.search.toLowerCase();
-    return (
-      p.nombre?.toLowerCase().includes(term) ||
-      p.descripcion?.toLowerCase().includes(term) ||
-      p.categoria?.nombre?.toLowerCase().includes(term)
-    );
+    let matchesSearch = true;
+    let matchesCategoria = true;
+
+    if (filtros.search) {
+      const term = filtros.search.toLowerCase();
+      matchesSearch =
+        p.nombre?.toLowerCase().includes(term) ||
+        p.descripcion?.toLowerCase().includes(term) ||
+        p.categoria?.nombre?.toLowerCase().includes(term);
+    }
+
+    if (filtros.categoria) {
+      matchesCategoria =
+        p.categoria?.nombre?.toLowerCase() === filtros.categoria.toLowerCase();
+    }
+
+    return matchesSearch && matchesCategoria;
   });
 
   if (error) {
     return (
-      <main className="min-h-screen bg-gray-50">
+      <main className="min-h-screen bg-gray-50 flex items-center justify-center">
         <ErrorMessage message={error} />
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen bg-gray-50">
-      {/* Hero */}
-      <section className="bg-gradient-to-r from-violet-600 to-purple-700 text-white">
-        <div className="mx-auto max-w-7xl px-6 py-16 text-center">
-          <h1 className="text-4xl font-bold md:text-5xl">
-            Bienvenido a Pochita Store
+    <main className="min-h-screen bg-gray-50 flex flex-col">
+      {/* Hero Premium Redesignado */}
+      <section className="relative overflow-hidden bg-[#3b0764] text-white py-20 lg:py-28">
+        {/* Elementos decorativos de fondo (Mesh Gradient / Blur effect) */}
+        <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0">
+          <div className="absolute -top-[30%] -left-[10%] w-[50%] h-[100%] rounded-full bg-violet-600/40 blur-[100px]"></div>
+          <div className="absolute top-[20%] -right-[10%] w-[50%] h-[100%] rounded-full bg-fuchsia-600/30 blur-[100px]"></div>
+        </div>
+
+        <div className="relative z-10 mx-auto max-w-5xl px-6 text-center">
+          <h1 className="text-4xl font-extrabold tracking-tight md:text-6xl lg:text-7xl drop-shadow-sm">
+            Encuentra lo que amas en <br className="hidden md:block" />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-300 to-fuchsia-300">
+              Pochita Store
+            </span>
           </h1>
-          <p className="mt-4 text-lg text-violet-100">
-            Encuentra los mejores productos de múltiples vendedores en un solo
-            lugar
+          <p className="mt-6 mx-auto max-w-2xl text-lg md:text-xl text-violet-100/90 font-medium">
+            El marketplace líder para productos exclusivos de múltiples vendedores verificados. Compra con total seguridad y recibe en la puerta de tu casa.
           </p>
-          <div className="mt-8 flex justify-center gap-4">
-            <Link
-              to="/register"
-              className="rounded-lg bg-white px-6 py-3 font-medium text-violet-700 transition hover:bg-violet-50"
+          <div className="mt-10 flex justify-center">
+            <a
+              href="#catalogo"
+              className="group relative inline-flex items-center justify-center rounded-full bg-white px-8 py-3.5 text-base font-bold text-violet-900 transition-all duration-200 hover:bg-gray-100 hover:scale-105 hover:shadow-xl hover:shadow-violet-900/20 active:scale-95"
             >
-              Crear cuenta
-            </Link>
-            <Link
-              to="/register/vendedor"
-              className="rounded-lg border border-white px-6 py-3 font-medium text-white transition hover:bg-white/10"
-            >
-              Vender con nosotros
-            </Link>
+              Comienza a explorar hoy
+            </a>
           </div>
         </div>
       </section>
 
       {/* Beneficios */}
-      <section className="border-b bg-white">
-        <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 px-6 py-12 md:grid-cols-3">
-          <div className="flex items-center gap-4">
-            <ShoppingBag className="h-8 w-8 text-violet-600" />
+      <section className="bg-white border-b border-gray-100">
+        <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 px-6 py-14 md:grid-cols-3">
+          <div className="flex flex-col items-center text-center gap-3 p-4 rounded-2xl hover:bg-violet-50/50 transition-colors duration-300">
+            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-violet-100 text-violet-600">
+              <ShoppingBag className="h-7 w-7" />
+            </div>
             <div>
-              <h3 className="font-semibold text-gray-800">
+              <h3 className="font-semibold text-gray-900 text-lg">
                 Variedad de productos
               </h3>
-              <p className="text-sm text-gray-500">
-                Miles de productos de diferentes categorías
+              <p className="mt-1 text-sm text-gray-500 leading-relaxed">
+                Descubre miles de artículos únicos de diferentes categorías y vendedores.
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-4">
-            <Truck className="h-8 w-8 text-violet-600" />
+          <div className="flex flex-col items-center text-center gap-3 p-4 rounded-2xl hover:bg-violet-50/50 transition-colors duration-300">
+            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-violet-100 text-violet-600">
+              <Truck className="h-7 w-7" />
+            </div>
             <div>
-              <h3 className="font-semibold text-gray-800">Envío seguro</h3>
-              <p className="text-sm text-gray-500">
-                Seguimiento en tiempo real de tus pedidos
+              <h3 className="font-semibold text-gray-900 text-lg">Envío seguro y rápido</h3>
+              <p className="mt-1 text-sm text-gray-500 leading-relaxed">
+                Seguimiento en tiempo real de tus pedidos hasta la puerta de tu casa.
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-4">
-            <Shield className="h-8 w-8 text-violet-600" />
+          <div className="flex flex-col items-center text-center gap-3 p-4 rounded-2xl hover:bg-violet-50/50 transition-colors duration-300">
+            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-violet-100 text-violet-600">
+              <Shield className="h-7 w-7" />
+            </div>
             <div>
-              <h3 className="font-semibold text-gray-800">
-                Compra protegida
+              <h3 className="font-semibold text-gray-900 text-lg">
+                Compra 100% protegida
               </h3>
-              <p className="text-sm text-gray-500">
-                Pago seguro y protección al comprador
+              <p className="mt-1 text-sm text-gray-500 leading-relaxed">
+                Pagos encriptados y garantía de reembolso si algo sale mal.
               </p>
             </div>
           </div>
@@ -121,17 +153,17 @@ function Home() {
 
       {/* Categorías */}
       {categorias.length > 0 && (
-        <section className="border-b bg-white">
-          <div className="mx-auto max-w-7xl px-6 py-8">
-            <h2 className="mb-4 text-xl font-bold text-gray-800">
-              Categorías
+        <section className="bg-gray-50">
+          <div className="mx-auto max-w-7xl px-6 pt-12 pb-4">
+            <h2 className="mb-6 text-2xl font-bold text-gray-900 tracking-tight">
+              Explorar Categorías
             </h2>
             <div className="flex flex-wrap gap-3">
               {categorias.map((cat) => (
                 <Link
                   key={cat.idCategoria}
                   to={`/?categoria=${cat.nombre}`}
-                  className="rounded-full border border-gray-200 bg-gray-50 px-4 py-2 text-sm text-gray-600 transition hover:border-violet-300 hover:text-violet-700"
+                  className="rounded-full border border-gray-200 bg-white px-5 py-2.5 text-sm font-medium text-gray-600 transition-all duration-300 hover:border-violet-300 hover:bg-violet-50 hover:text-violet-700 hover:shadow-sm"
                 >
                   {cat.nombre}
                 </Link>
@@ -142,18 +174,33 @@ function Home() {
       )}
 
       {/* Catálogo */}
-      <section className="mx-auto max-w-7xl px-6 py-8">
-        <div className="mb-6 flex items-center justify-between">
-          <h2 className="text-xl font-bold text-gray-800">
-            Productos destacados
+      <section id="catalogo" className="mx-auto max-w-7xl px-6 pb-20 pt-8 w-full flex-1 scroll-mt-24">
+        <div className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <h2 className="text-2xl font-bold text-gray-900 tracking-tight">
+            Productos Destacados
           </h2>
           <FiltrosCatalogo filtros={filtros} setFiltros={setFiltros} />
         </div>
 
         {loading ? (
-          <Spinner size="h-12 w-12" />
+          <div className="py-20 flex justify-center">
+            <Spinner size="h-12 w-12" />
+          </div>
         ) : (
-          <ProductoGrid productos={productosFiltrados} />
+          <div className="space-y-10">
+            {/* Solo pasamos los primeros 4 productos */}
+            <ProductoGrid productos={productosFiltrados.slice(0, 4)} />
+
+            {/* Botón para ver el catálogo completo */}
+            <div className="flex justify-center pt-4">
+              <Link
+                to="/catalogo"
+                className="inline-flex items-center justify-center rounded-full bg-violet-600 px-8 py-3 text-base font-bold text-white transition-all duration-200 hover:bg-violet-700 hover:scale-105 hover:shadow-lg active:scale-95"
+              >
+                Ver todos los productos
+              </Link>
+            </div>
+          </div>
         )}
       </section>
     </main>

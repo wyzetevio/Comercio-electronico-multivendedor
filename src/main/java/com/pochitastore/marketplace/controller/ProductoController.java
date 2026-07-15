@@ -33,9 +33,10 @@ public class ProductoController {
     @PutMapping("/{idProducto}")
     public Producto actualizarProducto(
             @PathVariable Long idProducto,
+            @RequestParam(required = false) Long idCategoria,
             @RequestBody Producto producto
     ) {
-        return productoService.actualizarProducto(idProducto, producto);
+        return productoService.actualizarProducto(idProducto, producto, idCategoria);
     }
 
     // =========================
@@ -61,8 +62,12 @@ public class ProductoController {
     // =========================
     @GetMapping("/tienda/{idTienda}")
     public List<ProductoDTO> obtenerProductosTienda(
-            @PathVariable Long idTienda
+            @PathVariable Long idTienda,
+            @RequestParam(required = false, defaultValue = "false") boolean todos
     ) {
+        if (todos) {
+            return productoService.obtenerTodosProductosTienda(idTienda);
+        }
         return productoService.obtenerProductosTienda(idTienda);
     }
 

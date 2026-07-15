@@ -9,6 +9,7 @@ import { useAuth } from "../../context/AuthContext";
 import { useStore } from "../../context/StoreContext";
 import {
   obtenerSubordenesTienda,
+  actualizarEstadoSuborden,
 } from "../../services/ordenService";
 import {
   formatearPrecio,
@@ -33,20 +34,31 @@ function DashboardVentas() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    const fetchVentas = async () => {
-      try {
-        const data = await obtenerSubordenesTienda(tienda.idTienda);
-        setVentas(data);
-      } catch {
-        setError("Error al cargar las ventas.");
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchVentas = async () => {
+    try {
+      const data = await obtenerSubordenesTienda(tienda.idTienda);
+      const ordenesOrdenadas = data.sort((a, b) => b.idSuborden - a.idSuborden);
+      setVentas(ordenesOrdenadas);
+    } catch {
+      setError("Error al cargar las ventas.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     if (!storeLoading && tienda) fetchVentas();
   }, [tienda, storeLoading]);
+
+  const handleActualizarEstado = async (idSuborden, nuevoEstado) => {
+    if (!window.confirm(`¿Seguro que deseas marcar esta orden como ${nuevoEstado}?`)) return;
+    try {
+      await actualizarEstadoSuborden(idSuborden, nuevoEstado);
+      fetchVentas(); // Recargar la tabla
+    } catch (err) {
+      alert("Hubo un error al actualizar el estado.");
+    }
+  };
 
   if (storeLoading || loading) return <Spinner size="h-12 w-12" />;
   if (error) return <ErrorMessage message={error} />;
@@ -160,6 +172,7 @@ function DashboardVentas() {
                   <th className="px-6 py-3 font-medium">Fecha</th>
                   <th className="px-6 py-3 font-medium">Estado</th>
                   <th className="px-6 py-3 font-medium">Total</th>
+                  <th className="px-6 py-3 font-medium text-right">Acciones</th>
                 </tr>
               </thead>
               <tbody className="divide-y">
@@ -182,6 +195,24 @@ function DashboardVentas() {
                     </td>
                     <td className="px-6 py-4 font-semibold text-violet-600">
                       {formatearPrecio(orden.totalVendedor)}
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      {['PAGADA', 'EN_PREPARACION'].includes(orden.estado) && (
+                        <button
+                          onClick={() => handleActualizarEstado(orden.idSuborden, 'ENVIADA')}
+                          className="text-xs bg-violet-100 text-violet-700 px-3 py-1.5 rounded-lg hover:bg-violet-200 font-medium transition"
+                        >
+                          Marcar Enviado
+                        </button>
+                      )}
+                      {['ENVIADA', 'EN_TRANSITO'].includes(orden.estado) && (
+                        <button
+                          onClick={() => handleActualizarEstado(orden.idSuborden, 'ENTREGADA')}
+                          className="text-xs bg-green-100 text-green-700 px-3 py-1.5 rounded-lg hover:bg-green-200 font-medium transition"
+                        >
+                          Marcar Entregado
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))}

@@ -22,6 +22,7 @@ public class OrdenService {
     private final ProductoService productoService;
 
     private final CarritoService carritoService;
+    private final CuponService cuponService;
 
     public List<Orden> obtenerOrdenesDelCliente(Long idUsuario) {
         return ordenRepository.findByUsuarioIdUsuario(idUsuario);
@@ -56,6 +57,13 @@ public class OrdenService {
 
         orden.setEstadoGeneral("PAGADA");
         orden.setUpdatedAt(LocalDateTime.now());
+        
+        List<Suborden> subordenes = obtenerSubordenes(idOrden);
+        for(Suborden sub : subordenes) {
+            sub.setEstado("PAGADA");
+            sub.setUpdatedAt(LocalDateTime.now());
+            subordenRepository.save(sub);
+        }
 
         return ordenRepository.save(orden);
     }
@@ -67,6 +75,13 @@ public class OrdenService {
         orden.setEstadoGeneral("CANCELADA");
         orden.setUpdatedAt(LocalDateTime.now());
 
+        List<Suborden> subordenes = obtenerSubordenes(idOrden);
+        for(Suborden sub : subordenes) {
+            sub.setEstado("CANCELADA");
+            sub.setUpdatedAt(LocalDateTime.now());
+            subordenRepository.save(sub);
+        }
+
         return ordenRepository.save(orden);
     }
 
@@ -76,6 +91,13 @@ public class OrdenService {
 
         orden.setEstadoGeneral("COMPLETADA");
         orden.setUpdatedAt(LocalDateTime.now());
+
+        List<Suborden> subordenes = obtenerSubordenes(idOrden);
+        for(Suborden sub : subordenes) {
+            sub.setEstado("COMPLETADA");
+            sub.setUpdatedAt(LocalDateTime.now());
+            subordenRepository.save(sub);
+        }
 
         return ordenRepository.save(orden);
     }
@@ -103,13 +125,39 @@ public class OrdenService {
         
         suborden.setEstado(estado);
         suborden.setUpdatedAt(LocalDateTime.now());
+        suborden = subordenRepository.save(suborden);
+
+        // Synchronize parent Orden state
+        Orden orden = suborden.getOrden();
+        List<Suborden> subordenes = obtenerSubordenes(orden.getIdOrden());
         
-        return subordenRepository.save(suborden);
+        boolean todasEntregadas = true;
+        boolean algunaEnviadaOEnTransito = false;
+        
+        for (Suborden s : subordenes) {
+            if (!s.getEstado().equals("ENTREGADA") && !s.getEstado().equals("COMPLETADA")) {
+                todasEntregadas = false;
+            }
+            if (s.getEstado().equals("ENVIADA") || s.getEstado().equals("EN_TRANSITO")) {
+                algunaEnviadaOEnTransito = true;
+            }
+        }
+        
+        if (todasEntregadas) {
+            orden.setEstadoGeneral("ENTREGADA");
+        } else if (algunaEnviadaOEnTransito) {
+            orden.setEstadoGeneral("ENVIADA");
+        }
+        orden.setUpdatedAt(LocalDateTime.now());
+        ordenRepository.save(orden);
+
+        return suborden;
     }
 
     public Orden crearOrdenDesdeCarrito(
             Long usuarioId,
-            Long direccionId
+            Long direccionId,
+            String codigoCupon
     ) {
 
         // OBTENER CARRITO
@@ -141,15 +189,25 @@ public class OrdenService {
         }
 
         // CREAR ORDEN
-
         Orden orden = new Orden();
-
         orden.setUsuario(carrito.getUsuario());
-
         orden.setDireccion(direccion);
 
-        orden.setTotal(total);
+        // APLICAR CUPON SI EXISTE
+        double descuento = 0.0;
+        if (codigoCupon != null && !codigoCupon.trim().isEmpty()) {
+            try {
+                // Validación usa el CuponService (lanzará excepción si es inválido)
+                com.pochitastore.marketplace.entity.Cupon cupon = cuponService.validarCupon(codigoCupon);
+                descuento = total * (cupon.getDescuentoPorcentaje() / 100.0);
+                orden.setCodigoCupon(cupon.getCodigo());
+                orden.setDescuento(descuento);
+            } catch (Exception e) {
+                System.out.println("No se aplicó cupón: " + e.getMessage());
+            }
+        }
 
+        orden.setTotal(total - descuento);
         orden.setEstadoGeneral("PENDIENTE");
 
         orden.setCreatedAt(LocalDateTime.now());

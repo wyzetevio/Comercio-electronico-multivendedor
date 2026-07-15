@@ -2,8 +2,10 @@ package com.pochitastore.marketplace.service;
 
 import com.pochitastore.marketplace.entity.Orden;
 import com.pochitastore.marketplace.entity.Pago;
+import com.pochitastore.marketplace.entity.Suborden;
 import com.pochitastore.marketplace.repository.OrdenRepository;
 import com.pochitastore.marketplace.repository.PagoRepository;
+import com.pochitastore.marketplace.repository.SubordenRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -16,6 +18,7 @@ public class PagoService {
 
     private final PagoRepository pagoRepository;
     private final OrdenRepository ordenRepository;
+    private final SubordenRepository subordenRepository;
 
     public Pago registrarPago(
             Long idOrden,
@@ -56,8 +59,14 @@ public class PagoService {
         Orden orden = pago.getOrden();
 
         orden.setEstadoGeneral("PAGADA");
-
         ordenRepository.save(orden);
+
+        List<Suborden> subordenes = subordenRepository.findByOrdenIdOrden(orden.getIdOrden());
+        for (Suborden sub : subordenes) {
+            sub.setEstado("PAGADA");
+            sub.setUpdatedAt(LocalDateTime.now());
+            subordenRepository.save(sub);
+        }
 
         return pagoActualizado;
     }

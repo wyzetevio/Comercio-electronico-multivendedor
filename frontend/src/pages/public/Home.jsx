@@ -8,12 +8,15 @@ import Spinner from "../../components/ui/Spinner";
 import ErrorMessage from "../../components/common/ErrorMessage";
 import { obtenerProductos } from "../../services/productoService";
 import { obtenerCategorias } from "../../services/categoriaService";
+import { obtenerCuponesActivos } from "../../services/cuponService";
+import { Tag } from "lucide-react";
 
 function Home() {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const [productos, setProductos] = useState([]);
   const [categorias, setCategorias] = useState([]);
+  const [cuponDestacado, setCuponDestacado] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -33,12 +36,17 @@ function Home() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [productosData, categoriasData] = await Promise.all([
+        const [productosData, categoriasData, cuponesData] = await Promise.all([
           obtenerProductos(),
           obtenerCategorias(),
+          obtenerCuponesActivos().catch(() => []) // Catch error if fails to load coupons
         ]);
         setProductos(productosData);
         setCategorias(categoriasData);
+        if (cuponesData && cuponesData.length > 0) {
+          // Select the first active coupon (or the one with max discount)
+          setCuponDestacado(cuponesData[0]);
+        }
       } catch {
         setError("Error al cargar el catálogo. Intente de nuevo más tarde.");
       } finally {
@@ -79,6 +87,25 @@ function Home() {
 
   return (
     <main className="min-h-screen bg-gray-50 flex flex-col">
+      {/* BANNER PROMOCIONAL ANIMADO */}
+      {cuponDestacado && (
+        <div className="relative overflow-hidden bg-gradient-to-r from-fuchsia-600 to-violet-600 text-white shadow-lg">
+          <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
+          <div className="relative mx-auto flex max-w-7xl items-center justify-center px-4 py-3 sm:px-6 lg:px-8">
+            <div className="flex animate-pulse items-center gap-2 rounded-full bg-white/20 px-3 py-1 text-sm font-semibold text-white backdrop-blur-md">
+              <Tag className="h-4 w-4" />
+              <span>OFERTA ESPECIAL</span>
+            </div>
+            <p className="ml-4 text-sm font-medium sm:text-base">
+              ¡Aprovecha <span className="font-bold text-yellow-300">{cuponDestacado.descuentoPorcentaje}% de descuento</span>! Usa el código:
+              <span className="mx-2 inline-block rounded-md bg-white px-2 py-1 text-lg font-black tracking-widest text-violet-700 shadow-sm transition-transform hover:scale-110 cursor-pointer" title="Copia este código y úsalo en el carrito">
+                {cuponDestacado.codigo}
+              </span>
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Hero Premium Redesignado */}
       <section className="relative overflow-hidden bg-[#3b0764] text-white py-20 lg:py-28">
         {/* Elementos decorativos de fondo (Mesh Gradient / Blur effect) */}

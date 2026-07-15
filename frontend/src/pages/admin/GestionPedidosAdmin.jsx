@@ -157,13 +157,6 @@ function GestionPedidosAdmin() {
                       {(orden.estadoGeneral === "PENDIENTE" || orden.estadoGeneral === "PAGADA") && (
                         <>
                           <button
-                            onClick={() => handleAccion(orden.idOrden, "completar")}
-                            className="p-1.5 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
-                            title="Completar Orden"
-                          >
-                            <CheckCircle size={20} />
-                          </button>
-                          <button
                             onClick={() => handleAccion(orden.idOrden, "cancelar")}
                             className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                             title="Cancelar Orden"
@@ -220,7 +213,7 @@ function GestionPedidosAdmin() {
                   {detalles.map((det, idx) => (
                     <div key={det.idDetalle || idx} className="flex items-center gap-4 bg-gray-50 p-3 rounded-lg border border-gray-100 hover:shadow-sm transition-shadow">
                       <img
-                        src={det.producto?.imagenUrl || "https://via.placeholder.com/80"}
+                        src={(det.producto?.imagenes && det.producto.imagenes.length > 0) ? det.producto.imagenes[0].url : (det.producto?.imagenPrincipal || "https://placehold.co/80?text=No+Image")}
                         alt={det.producto?.nombre || "Producto"}
                         className="w-16 h-16 object-cover rounded-md border bg-white"
                       />

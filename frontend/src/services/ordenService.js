@@ -18,12 +18,18 @@ export const crearOrden = async (orden) => {
  * @param {number} idDireccion ID de la dirección de envío.
  * @returns {Promise<Object>} Orden creada.
  */
-export const realizarCheckout = async (idUsuario, idDireccion) => {
+export const realizarCheckout = async (idUsuario, idDireccion, codigoCupon) => {
+  const params = {
+    usuarioId: idUsuario,
+    direccionId: idDireccion,
+  };
+  
+  if (codigoCupon) {
+    params.codigoCupon = codigoCupon;
+  }
+
   const { data } = await api.post("/ordenes/checkout", null, {
-    params: {
-      usuarioId: idUsuario,
-      direccionId: idDireccion,
-    },
+    params: params,
   });
 
   return data;

@@ -3,7 +3,7 @@ import { Store, Shield, Phone, Mail, MapPin } from "lucide-react";
 
 function Footer() {
   return (
-    <footer className="bg-[#0f172a] text-gray-300 mt-10">
+    <footer className="bg-[#0f172a] text-gray-300 mt-10 print:hidden">
       <div className="max-w-7xl mx-auto px-6 py-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
 
         {/* Marca y Acerca de */}

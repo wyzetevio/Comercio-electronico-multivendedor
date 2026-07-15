@@ -34,6 +34,12 @@ public class Orden {
     @Column(name = "estado_general")
     private String estadoGeneral;
 
+    @Column(name = "descuento")
+    private Double descuento = 0.0;
+
+    @Column(name = "codigo_cupon")
+    private String codigoCupon;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 

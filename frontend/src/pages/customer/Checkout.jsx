@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import {
   CreditCard,
@@ -24,6 +24,9 @@ import Boton from "../../components/ui/Boton";
 import Input from "../../components/ui/Input";
 import Alerta from "../../components/ui/Alerta";
 import Spinner from "../../components/ui/Spinner";
+import confetti from "canvas-confetti";
+import { toPng } from 'html-to-image';
+import { jsPDF } from 'jspdf';
 import { useAuth } from "../../context/AuthContext";
 import { useCart } from "../../context/CartContext";
 import { realizarCheckout, obtenerDetallesOrden } from "../../services/ordenService";
@@ -35,10 +38,46 @@ function Checkout() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { items, getCartTotal, clearCart, cuponAplicado } = useCart();
+  const pdfRef = useRef(null);
 
   // Estados de control de flujo (Fases del Checkout)
   // Fase 2 = Dirección, Fase 3 = Pago, Fase 4 = Confirmación
   const [fase, setFase] = useState(2);
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    if (fase === 4) {
+      triggerConfetti();
+    }
+  }, [fase]);
+
+  const triggerConfetti = () => {
+    const duration = 3000;
+    const end = Date.now() + duration;
+
+    const frame = () => {
+      confetti({
+        particleCount: 5,
+        angle: 60,
+        spread: 55,
+        origin: { x: 0 },
+        colors: ['#8B5CF6', '#C084FC', '#FBBF24'] // Violet, Fuchsia, Yellow
+      });
+      confetti({
+        particleCount: 5,
+        angle: 120,
+        spread: 55,
+        origin: { x: 1 },
+        colors: ['#8B5CF6', '#C084FC', '#FBBF24']
+      });
+
+      if (Date.now() < end) {
+        requestAnimationFrame(frame);
+      }
+    };
+    frame();
+  };
 
   // Datos de Dirección (Fase 2)
   const [direcciones, setDirecciones] = useState([]);
@@ -243,11 +282,14 @@ function Checkout() {
       await new Promise(resolve => setTimeout(resolve, 2000));
 
       // 1. Crear la Orden
-      const orden = await realizarCheckout(user.idUsuario, direccionSeleccionada.idDireccion);
+      const orden = await realizarCheckout(
+        user.idUsuario, 
+        direccionSeleccionada.idDireccion,
+        cuponAplicado?.codigo
+      );
 
-      // 2. Registrar el Pago y auto-aprobarlo por la simulación
+      // 2. Registrar el Pago (Se queda como PENDIENTE para que el admin lo apruebe)
       const pago = await registrarPago(orden.idOrden, metodoPago);
-      await aprobarPago(pago.idPago);
 
       // 3. Obtener detalles reales de la orden y Limpiar carrito
       const detallesReales = await obtenerDetallesOrden(orden.idOrden);
@@ -264,9 +306,66 @@ function Checkout() {
     }
   };
 
+  // Función para generar PDF usando html-to-image (Soporta colores modernos como oklab)
+  const generatePDF = async () => {
+    const element = pdfRef.current;
+    if (!element) return;
+    
+    setIsGeneratingPDF(true);
+    
+    try {
+      // Configuramos para que tenga un fondo blanco puro y renderice bien las fuentes
+      const dataUrl = await toPng(element, { 
+        quality: 1.0,
+        backgroundColor: '#ffffff',
+        pixelRatio: 2, // Alta definición
+        filter: (node) => {
+          // Ignorar las etiquetas <img> para evitar el crasheo por seguridad (CORS [object Event])
+          if (node.tagName && node.tagName.toUpperCase() === 'IMG') {
+            return false; 
+          }
+          return true;
+        }
+      });
+      
+      // Inicializar documento PDF (A4 en formato vertical)
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
+      
+      // Dimensiones de A4
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      
+      // Calcular aspecto de la imagen capturada para que encaje
+      const imgProps = pdf.getImageProperties(dataUrl);
+      const imgWidth = pdfWidth - 20; // 10mm margen por lado
+      const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
+      
+      // Agregar la imagen al PDF (x=10, y=10)
+      pdf.addImage(dataUrl, 'PNG', 10, 10, imgWidth, imgHeight);
+      
+      // Descargar el archivo
+      pdf.save(`comprobante_PCH2026_${ordenCreada?.idOrden || '0000'}.pdf`);
+      
+      setIsGeneratingPDF(false);
+    } catch (err) {
+      console.error("Error crítico al generar PDF:", err);
+      setIsGeneratingPDF(false);
+      alert(`Error técnico: ${err.message || err}\n\nUsa Ctrl+P como alternativa.`);
+    }
+  };
+
+  // Botón principal
+  const handleDownloadPDF = () => {
+    generatePDF();
+  };
+
   // Componente del Stepper Header
   const renderStepper = () => (
-    <div className="mx-auto mb-10 max-w-4xl rounded-2xl bg-white px-8 py-5 shadow-sm border border-gray-100 hidden md:flex items-center justify-between text-sm font-medium">
+    <div className="mx-auto mb-10 max-w-4xl rounded-2xl bg-white px-8 py-5 shadow-sm border border-gray-100 hidden md:flex items-center justify-between text-sm font-medium print:hidden">
       <div className="flex items-center text-violet-600">
         <span className="flex h-7 w-7 items-center justify-center rounded-full bg-violet-100 text-violet-600 mr-2">✓</span>
         Mi carrito
@@ -340,11 +439,12 @@ function Checkout() {
           // ================= FASE 4: CONFIRMACIÓN DE ÉXITO =================
           <div className="mx-auto max-w-3xl space-y-6">
 
+            <div ref={pdfRef} className="space-y-6 p-4 bg-white/50 rounded-3xl">
             {/* Box 1: Cabecera de Éxito */}
             <div className="bg-white rounded-3xl p-10 shadow-sm border border-gray-100 text-center">
               <div className="mx-auto mb-4 flex h-24 w-24 items-center justify-center rounded-full bg-[#E8F8F0] text-[#1EC971] relative">
                 <CheckCircle2 size={50} />
-                <div className="absolute -top-2 -right-2 text-2xl animate-bounce">🎉</div>
+                <div className="absolute -top-2 -right-2 text-2xl">🎉</div>
               </div>
               <h1 className="text-3xl font-extrabold text-[#1A1F36] mb-2 tracking-tight">¡Pedido confirmado!</h1>
               <p className="text-gray-500 text-sm mb-1">Gracias por tu compra en <strong className="text-violet-700">Pochita Store</strong></p>
@@ -401,18 +501,16 @@ function Checkout() {
                   <span>Envío</span>
                   <span className="font-bold text-green-500">{costoEnvio === 0 ? "Gratis" : formatearPrecio(costoEnvio)}</span>
                 </div>
-                {cuponAplicado && (
+                {ordenCreada?.descuento > 0 && (
                   <div className="flex justify-between text-violet-600">
-                    <span>Descuento cupón</span>
-                    <span className="font-bold">-{formatearPrecio(descuentoCupon)}</span>
+                    <span>Descuento cupón ({ordenCreada.codigoCupon})</span>
+                    <span className="font-bold">-{formatearPrecio(ordenCreada.descuento)}</span>
                   </div>
                 )}
                 <div className="flex justify-between border-t pt-4 mt-2">
                   <span className="font-extrabold text-gray-900 text-lg">Total pagado</span>
                   <span className="font-black text-violet-700 text-xl">
-                    {formatearPrecio(
-                      (Array.isArray(itemsComprados) ? itemsComprados : []).reduce((acc, item) => acc + ((item.precioUnitario || (item.producto || item).precio || 0) * item.cantidad), 0) + costoEnvio - (cuponAplicado ? descuentoCupon : 0)
-                    )}
+                    {formatearPrecio(ordenCreada?.total || 0)}
                   </span>
                 </div>
               </div>
@@ -443,9 +541,10 @@ function Checkout() {
                 </div>
               </div>
             </div>
+            </div> {/* Fin de ref pdf */}
 
-            {/* Box 4: Estado del pedido (Stepper vertical) */}
-            <div className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100">
+            {/* Box 4: Estado del pedido (Stepper vertical) - Oculto al imprimir */}
+            <div className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100 print:hidden">
               <h3 className="font-bold text-gray-900 mb-6 flex items-center gap-2 text-sm">
                 <ShieldCheck className="text-violet-600" size={18} /> Estado del pedido
               </h3>
@@ -495,16 +594,39 @@ function Checkout() {
               </div>
             </div>
 
-            {/* Acciones */}
-            <div className="flex flex-col sm:flex-row gap-4 pt-2">
-              <button onClick={() => window.print()} className="flex-1 rounded-xl bg-violet-600 text-white py-4 font-bold hover:bg-violet-700 transition-colors shadow-md flex justify-center items-center gap-2">
-                🖨️ Descargar Comprobante PDF
+            {/* Acciones - Oculto al imprimir */}
+            <div className="flex flex-col md:flex-row gap-4 pt-6 print:hidden">
+              <button 
+                onClick={handleDownloadPDF} 
+                className={`flex-1 rounded-2xl bg-gradient-to-r from-violet-600 to-indigo-600 text-white py-3.5 px-4 font-bold hover:from-violet-700 hover:to-indigo-700 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 flex justify-center items-center gap-2 text-sm sm:text-base`}
+              >
+                {isGeneratingPDF ? (
+                  <>
+                    <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Generando...
+                  </>
+                ) : (
+                  <>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+                    Descargar PDF
+                  </>
+                )}
               </button>
-              <button className="flex-1 rounded-xl border border-violet-200 bg-violet-50 text-violet-700 py-4 font-bold hover:bg-violet-100 transition-colors flex justify-center items-center gap-2">
-                <MapPin size={18} /> Rastrear pedido
+              
+              <button className="flex-1 rounded-2xl border-2 border-violet-100 bg-violet-50/50 text-violet-700 py-3.5 px-4 font-bold hover:bg-violet-100 hover:border-violet-200 transition-colors flex justify-center items-center gap-2 text-sm sm:text-base">
+                <MapPin size={20} /> 
+                Rastrear envío
               </button>
-              <button onClick={() => navigate("/catalogo")} className="flex-1 rounded-xl border border-gray-200 bg-white text-gray-700 py-4 font-bold hover:bg-gray-50 transition-colors flex justify-center items-center gap-2">
-                <ShoppingCart size={18} /> Seguir comprando
+              
+              <button 
+                onClick={() => navigate("/")} 
+                className="flex-1 rounded-2xl border-2 border-gray-100 bg-white text-gray-700 py-3.5 px-4 font-bold hover:bg-gray-50 hover:border-gray-200 transition-colors flex justify-center items-center gap-2 text-sm sm:text-base"
+              >
+                <ShoppingCart size={20} /> 
+                Volver a tienda
               </button>
             </div>
           </div>

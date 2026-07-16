@@ -105,6 +105,21 @@ export const CartProvider = ({ children }) => {
 
     // Agregar producto al carrito
     const addToCart = async (producto, cantidad = 1) => {
+        // Validación de stock
+        let cantidadActual = 0;
+        if (user && user.idUsuario && cart) {
+            const item = cart.items?.find(i => (i.producto?.idProducto || i.idProducto) === producto.idProducto);
+            if (item) cantidadActual = item.cantidad;
+        } else {
+            const item = localCartItems.find(i => (i.producto?.idProducto || i.idProducto) === producto.idProducto);
+            if (item) cantidadActual = item.cantidad;
+        }
+
+        if (cantidadActual + cantidad > producto.stock) {
+            alert(`No hay stock suficiente. Solo quedan ${producto.stock} unidades disponibles.`);
+            return; // Bloquea la acción
+        }
+
         if (user && user.idUsuario) {
 
             try {
@@ -120,10 +135,10 @@ export const CartProvider = ({ children }) => {
         } else {
             // Lógica Local (Invitado): Se almacena en memoria local
             setLocalCartItems((prevItems) => {
-                const itemExistente = prevItems.find(item => item.producto.idProducto === producto.idProducto);
+                const itemExistente = prevItems.find(item => (item.producto?.idProducto || item.idProducto) === producto.idProducto);
                 if (itemExistente) {
                     return prevItems.map(item =>
-                        item.producto.idProducto === producto.idProducto
+                        (item.producto?.idProducto || item.idProducto) === producto.idProducto
                             ? { ...item, cantidad: item.cantidad + cantidad }
                             : item
                     );
@@ -141,6 +156,12 @@ export const CartProvider = ({ children }) => {
         }
 
         if (user && user.idUsuario) {
+            const itemEnCarrito = cart?.items?.find(i => i.idCarritoItem === id);
+            const stockMaximo = itemEnCarrito?.producto?.stock ?? itemEnCarrito?.stock ?? 999;
+            if (itemEnCarrito && nuevaCantidad > stockMaximo) {
+                alert(`No hay stock suficiente. Solo quedan ${stockMaximo} unidades disponibles.`);
+                return;
+            }
 
             // En el servidor el ID es el del 'carritoItem'
             try {
@@ -151,9 +172,16 @@ export const CartProvider = ({ children }) => {
             }
         } else {
             // Lógica Local (Invitado)
+            const itemEnCarrito = localCartItems.find(i => (i.producto?.idProducto || i.idProducto) === id);
+            const stockMaximo = itemEnCarrito?.producto?.stock ?? itemEnCarrito?.stock ?? 999;
+            if (itemEnCarrito && nuevaCantidad > stockMaximo) {
+                alert(`No hay stock suficiente. Solo quedan ${stockMaximo} unidades disponibles.`);
+                return;
+            }
+
             setLocalCartItems((prevItems) =>
                 prevItems.map(item =>
-                    item.producto.idProducto === id
+                    (item.producto?.idProducto || item.idProducto) === id
                         ? { ...item, cantidad: nuevaCantidad }
                         : item
                 )

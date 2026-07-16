@@ -91,8 +91,9 @@ function CartItem({ item }) {
                 {item.cantidad}
               </span>
               <button
-                className="flex h-full w-10 items-center justify-center text-gray-500 hover:text-violet-600 transition-colors"
+                className="flex h-full w-10 items-center justify-center text-gray-500 hover:text-violet-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 onClick={() => updateQuantity(item.idCarritoItem || producto.idProducto, item.cantidad + 1)}
+                disabled={item.cantidad >= (producto.stock || 999)}
               >
                 <Plus size={16} />
               </button>
